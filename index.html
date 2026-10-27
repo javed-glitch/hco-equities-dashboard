@@ -18,14 +18,48 @@ a.tile:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 .tile h2{font-size:19px;margin:0}
 .tile p{margin:0;color:var(--muted);font-size:14.5px}
 .go{margin-top:auto;color:var(--brand);font-weight:600;font-size:14px}
+.int{display:inline-block;vertical-align:middle;margin-left:8px;font-size:12px;font-weight:700;letter-spacing:.08em;color:#8A1F11;background:#FBE3DE;border-radius:6px;padding:3px 9px}
+@media (prefers-color-scheme:dark){.int{color:#F4B5A8;background:#4B1C13}}
+h3{font-size:15px;margin:22px 0 8px}
+.links{columns:2 280px;column-gap:24px;margin:0;padding:0;list-style:none;font-size:14.5px}
+.links li{break-inside:avoid;margin:0 0 6px}
+.links a{color:var(--brand);text-decoration:none}.links a:hover{text-decoration:underline}
 footer{margin-top:34px;color:var(--muted);font-size:13px}
 </style></head><body><div class="wrap">
 <img class="logo" src="logo.png" alt="H &amp; Co Investments">
-<h1>Equities dashboard</h1>
-<p class="lede">All the stock dashboards in one place. Pick a tile.</p>
+<h1>EQUITIES DASHBOARD <span class="int">INTERNAL ONLY</span></h1>
+<p class="lede">All the stock dashboards in one place. Pick a tile. Claude artifact links open only for you, signed in to Claude.</p>
 <div class="grid">
   <a class="tile" href="fair-value-screener/"><span class="tag">Valuation + timing</span><h2>Fair Value Screener</h2><p>ISUS holdings in the S&amp;P 500 ranked against their own P/E history, with cycle stage and limit ladder. Timing refreshes every weekday, valuation every Monday.</p><span class="go">Open dashboard →</span></a>
   <a class="tile" href="https://javed-glitch.github.io/options-gravity-4-week-forward-scan-v3/"><span class="tag">Options</span><h2>Options Gravity</h2><p>The 4-week forward scan: where price is pulled to, and the walls around it.</p><span class="go">Open dashboard →</span></a>
+  <a class="tile" href="https://javed-glitch.github.io/market-scan-gpt-0.01/"><span class="tag">Cycle</span><h2>Market Cycle Dashboard</h2><p>The market scan cycle dashboard: where each ticker sits in the cycle.</p><span class="go">Open dashboard →</span></a>
+  <a class="tile" href="https://inquisitive-klepon-3f95ce.netlify.app/"><span class="tag">Portfolio</span><h2>Netlify Tracker</h2><p>Portfolio tracker with trend bands, satellite rotation and analyst targets. Asks for a login.</p><span class="go">Open dashboard →</span></a>
+  <a class="tile" href="https://claude.ai/artifact/RkrogbHYJnLiG2fqQLpgWi"><span class="tag">Claude artifact</span><h2>Fair Value Desk</h2><p>Per-stock valuation with the Stock Simplifier, Nash and Graham views. Opens in Claude.</p><span class="go">Open artifact →</span></a>
 </div>
+<h3>Claude artifacts</h3>
+<ul class="links">
+  <li><a href="https://claude.ai/artifact/PbXWnaV1es4zACSn14bQ8A">Quant Server SOP</a></li>
+  <li><a href="https://claude.ai/artifact/UZf8eTFmX6Jz6S6iwDihuy">Skill Runs</a></li>
+  <li><a href="https://claude.ai/artifact/9uxfjgMvBCMoQGXFZv42w7">Fair Value Shortlist</a></li>
+  <li><a href="https://claude.ai/artifact/KPDYc2fduWD4V1LAZdexxB">Gravity 4-Week Scan</a></li>
+  <li><a href="https://claude.ai/artifact/NccTUWtn2WMEvuQgZiNQD8">Options Gravity V2</a></li>
+  <li><a href="https://claude.ai/artifact/TPasPDUn8hFVa5r9D4zT22">Gravity Phase 2 Mock</a></li>
+  <li><a href="https://claude.ai/artifact/R3D19anS81jpLJjMmFF3Bf">Year 6 Allocation Model</a></li>
+  <li><a href="https://claude.ai/artifact/6NPEhHGamp2xuek6FepcFc">Held Stocks Value Check</a></li>
+  <li><a href="https://claude.ai/artifact/RjmQJ8Bd6EFN4pP52GFcwc">Zone Range Mock</a></li>
+  <li><a href="https://claude.ai/artifact/PK8Gq5dAWWdujpCg8V8WA1">Dry Powder Options</a></li>
+  <li><a href="https://claude.ai/artifact/GxzhNPbzukJh8GkwQv8Yhb">S&amp;P 500 Entry Scan</a></li>
+  <li><a href="https://claude.ai/artifact/DyZo3U6EgTDUFyPwRVbXwg">Sat Basket Cycle Walkthrough</a></li>
+  <li><a href="https://claude.ai/artifact/3YyqMfj8C8pTHxpUf6hXFP">Raw vs Confirmed Ladder</a></li>
+  <li><a href="https://claude.ai/artifact/RRuq6hAxYeLLWrN9oWYk24">Crash Detector Mock</a></li>
+  <li><a href="https://claude.ai/artifact/LFSQnc8uYpGJXr6rn2z1ZH">TSLA Regime Ladder</a></li>
+  <li><a href="https://claude.ai/artifact/NHKF8RcoLeewsgUe1FDUcV">Trim Ladders — Stock, Crypto, ETF</a></li>
+  <li><a href="https://claude.ai/artifact/Swzcg4xLCKjUeHXnHJDuaj">RULES Array Rationalisation</a></li>
+  <li><a href="https://claude.ai/artifact/DV9bznRNq4ghf5ycEHZc6f">Satellite Ledger Model</a></li>
+  <li><a href="https://claude.ai/artifact/MkAcsrWC7qqzmrV8G7YNmQ">Hot-Market Accumulation</a></li>
+  <li><a href="https://claude.ai/artifact/EewRHu4Figr6BNcb9BLYKB">Stocks — Detail</a></li>
+  <li><a href="https://claude.ai/artifact/CMHfz91Pa1FhdaGNpA67P8">SOP Scenario Audit</a></li>
+  <li><a href="https://claude.ai/artifact/3MMGeSBdnppAGjx4vq7MXL">Kraken Rotation — Build Plan</a></li>
+</ul>
 <footer>Data is for research, not advice. Prices are as of each scan.</footer>
 </div></body></html>
