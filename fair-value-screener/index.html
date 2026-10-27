@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="../favicon.png">
+<title>Fair Value Screener</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: heading, run bar (scan, progress), filters, then one wide ranked table. Same palette and zone colours as the Fair Value Desk. */
+:root{
+  --bg:#F2F5F3; --surface:#FFFFFF; --ink:#12201B; --muted:#58675F; --line:#DCE3DF;
+  --accent:#0E6B58; --accent-ink:#FFFFFF; --soft:#E8EEEA;
+  --zb-go:#D3EFDF; --zf-go:#064D2E; --zb-under:#E2F0D4; --zf-under:#35581A; --zb-near:#EEF0D2; --zf-near:#55581A; --zb-fair:#E2E8EC; --zf-fair:#34434D;
+  --zb-exp:#F8E7C4; --zf-exp:#6B4300; --zb-vexp:#F7D9D2; --zf-vexp:#7A2314;
+  --warn-bg:#F8E7C4; --warn-fg:#6B4300;
+  --f-display:'Bricolage Grotesque','Avenir Next','Segoe UI',sans-serif;
+  --f-body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1613; --surface:#16211D; --ink:#E6EFEA; --muted:#94A59C; --line:#26352F; --accent:#4CC3A5; --accent-ink:#06231C; --soft:#1C2A25;
+    --zb-go:#123F2B; --zf-go:#8FE0B4; --zb-under:#2A3F18; --zf-under:#BFE08C; --zb-near:#34380F; --zf-near:#D6DB8C; --zb-fair:#2A353C; --zf-fair:#B9C7D0;
+    --zb-exp:#4A3708; --zf-exp:#F0CC86; --zb-vexp:#4B1C13; --zf-vexp:#F2AB9B; --warn-bg:#4A3708; --warn-fg:#F0CC86; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1613; --surface:#16211D; --ink:#E6EFEA; --muted:#94A59C; --line:#26352F; --accent:#4CC3A5; --accent-ink:#06231C; --soft:#1C2A25;
+  --zb-go:#123F2B; --zf-go:#8FE0B4; --zb-under:#2A3F18; --zf-under:#BFE08C; --zb-near:#34380F; --zf-near:#D6DB8C; --zb-fair:#2A353C; --zf-fair:#B9C7D0;
+  --zb-exp:#4A3708; --zf-exp:#F0CC86; --zb-vexp:#4B1C13; --zf-vexp:#F2AB9B; --warn-bg:#4A3708; --warn-fg:#F0CC86; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--f-body)}
+.wrap{max-width:none;margin:0 auto;padding:22px max(16px,env(safe-area-inset-left,0px)) 56px max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+h1{font:700 28px/1.15 var(--f-display);margin:0;letter-spacing:-.01em}
+.lede{color:var(--muted);margin:4px 0 0;max-width:80ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.bar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.btn{padding:10px 16px;border-radius:8px;border:0;background:var(--accent);color:var(--accent-ink);font:600 14px var(--f-body);min-height:42px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn:focus-visible,.chip:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.status{color:var(--muted);font-size:13.5px}
+.status.err{color:#B33A2A;font-weight:500}
+.prog{height:8px;border-radius:99px;background:var(--soft);overflow:hidden;flex:1 1 220px;min-width:160px}
+.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:500 13px var(--f-mono);min-height:34px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+label.f{display:inline-flex;gap:6px;align-items:center;font-size:13.5px;color:var(--muted)}
+select,input[type=number]{font:500 13.5px var(--f-mono);padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);min-height:34px}
+input[type=number]{width:70px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:980px;font-size:13.5px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11.5px var(--f-body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--soft);white-space:nowrap;position:sticky;top:0}
+td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td small{display:block;color:var(--muted);font-size:12px;line-height:1.35}
+.sym{font:600 14px var(--f-mono)}
+.sym a{color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--muted)}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font:600 12px var(--f-body);white-space:nowrap}
+.pill.go{background:var(--zb-go);color:var(--zf-go)} .pill.under{background:var(--zb-under);color:var(--zf-under)} .pill.near{background:var(--zb-near);color:var(--zf-near)}
+.pill.fair{background:var(--zb-fair);color:var(--zf-fair)} .pill.exp{background:var(--zb-exp);color:var(--zf-exp)} .pill.vexp{background:var(--zb-vexp);color:var(--zf-vexp)}
+.pill.add{background:var(--zb-under);color:var(--zf-under)} .pill.dd{background:var(--zb-go);color:var(--zf-go)} .pill.hold{background:var(--zb-fair);color:var(--zf-fair)} .pill.trim{background:var(--zb-exp);color:var(--zf-exp)}
+.pill.flag{background:var(--warn-bg);color:var(--warn-fg);cursor:help}
+.dim{opacity:.55}
+details.secs{position:relative} details.secs summary{list-style:none;cursor:pointer;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font:500 13.5px var(--f-mono);min-height:34px;display:inline-flex;align-items:center}
+details.secs summary::-webkit-details-marker{display:none}
+.secbox{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.secbox label{display:inline-flex;gap:6px;align-items:center;font-size:13.5px;white-space:nowrap}
+.warn{background:var(--warn-bg);color:var(--warn-fg);border-radius:8px;padding:10px 12px;font-size:13.5px}
+.note{color:var(--muted);font-size:13px;margin:0}
+details summary{cursor:pointer;font-weight:600}
+@media (max-width:640px){h1{font-size:23px}}
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.top a.home{color:var(--muted);font-size:13.5px;text-decoration:none;border-bottom:1px dotted var(--muted)}
+.logo{height:34px;background:#fff;border-radius:8px;padding:4px 8px}
+</style></head><body>
+<div class="wrap">
+  <div class="top"><a href="../"><img class="logo" src="../logo.png" alt="H &amp; Co Investments"></a><a class="home" href="../">All dashboards</a></div>
+  <header>
+    <h1>Fair Value Screener</h1>
+    <p class="lede">Which of the ISUS holdings that are also in the S&amp;P 500 (banks and real estate left out) look Attractive or Very attractive against their own P/E history. Valuation uses the Stock Simplifier method on Yahoo Finance data. Timing uses the quant server's cycle stage rules and the three-rung limit ladder, rebuilt here so the page needs nothing from a Mac. It never touches Trading View. No sizing.</p>
+  </header>
+
+  <section class="card" aria-label="Scan status">
+    <p class="status" id="runmeta" role="status">Loading the latest scan…</p>
+    <p class="note" style="margin-top:8px" id="schedule">Refreshes itself: timing every weekday at 12:00 UTC (before the US open), valuation every Monday.</p>
+  </section>
+
+  <section class="card" aria-label="Filters">
+    <div class="bar">
+      <div class="chips" role="group" aria-label="Show" id="tabs">
+        <button class="chip" type="button" data-tab="go" aria-pressed="false">Very attractive</button>
+        <button class="chip" type="button" data-tab="under" aria-pressed="true">Attractive</button>
+        <button class="chip" type="button" data-tab="near" aria-pressed="false">Near the line</button>
+        <button class="chip" type="button" data-tab="buy" aria-pressed="false">Cheap and in buy zone</button>
+        <button class="chip" type="button" data-tab="anybuy" aria-pressed="false">Any in buy zone</button>
+        <button class="chip" type="button" data-tab="all" aria-pressed="false">All scanned</button>
+      </div>
+      <details class="secs" id="secs"><summary id="secsum">Sectors (all)</summary><div class="secbox" id="secbox"></div></details>
+      <label class="f"><input type="checkbox" id="hideflag" checked> Hide flagged</label>
+      <label class="f"><input type="checkbox" id="hideunrel" checked> Hide unreliable ranges</label>
+      <label class="f">Min return to target % <input type="number" id="minret" value="0" step="1" inputmode="numeric"></label>
+    </div>
+    <div class="bar" style="margin-top:10px"><span class="note">Timing</span><div class="chips" role="group" aria-label="Timing" id="timing">
+        <button class="chip" type="button" data-tm="any" aria-pressed="true">Any</button>
+        <button class="chip" type="button" data-tm="buy" aria-pressed="false">ADD or DOUBLE DOWN</button>
+        <button class="chip" type="button" data-tm="add" aria-pressed="false">ADD</button>
+        <button class="chip" type="button" data-tm="dd" aria-pressed="false">DOUBLE DOWN</button>
+        <button class="chip" type="button" data-tm="conf" aria-pressed="false">Bounce confirmed</button>
+      </div></div>
+    <div class="bar" style="margin-top:10px"><span class="note">Sort</span><div class="chips" role="group" aria-label="Sort" id="sort">
+        <button class="chip" type="button" data-sort="cheap" aria-pressed="true">Cheapest first</button>
+        <button class="chip" type="button" data-sort="upd" aria-pressed="false">Return to target: high to low</button>
+        <button class="chip" type="button" data-sort="upa" aria-pressed="false">Return to target: low to high</button>
+      </div></div>
+    <p class="note" style="margin-top:10px" id="count"></p>
+  </section>
+
+  <section aria-label="Results">
+    <div class="tablewrap"><table>
+      <thead><tr><th>Stock</th><th>Zone</th><th>Phase</th><th class="n">Price</th><th>Main measure</th><th class="n">Very cheap line</th><th class="n">Cheap line</th><th class="n">Price vs cheap line</th><th>Timing (cycle)</th><th>Limit ladder 40 / 40 / 20</th><th class="n">Analyst target</th><th class="n" id="thup" style="cursor:pointer" title="Click to sort: high to low, low to high, then back to cheapest first">Return to target ⇅</th><th>Flags</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="13" class="note">No results yet.</td></tr></tbody>
+    </table></div>
+  </section>
+
+  <section class="card" aria-label="How to read this">
+    <details><summary>How to read this</summary>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+        <p class="note"><b>Attractive</b> means the price is at or below the cheap line: the P/E's average minus one spread over up to five years. <b>Very attractive</b> means two spreads under the average. <b>Near the line</b> means Fair value but within 8% above the cheap line. The spread is a robust one (median-based), as inferred from Stock Simplifier's charts.</p>
+        <p class="note"><b>Timing</b> is the quant server's cycle stage for the stock, from daily RSI(14), the drop from the 52-week high and the 200-day average. <b>ADD</b> is Panic, Disbelief or Denial. <b>DOUBLE DOWN</b> is Anger, Capitulation or Depression. HOLD and TRIM mean no buy zone. <b>Bounce confirmed</b> means the price crossed back above its 5-day average after RSI was below 35 in the last 10 sessions. The rules are a line-for-line port of server.js and gave identical stage, RSI and confirmation on 14 test symbols.</p>
+        <p class="note"><b>Limit ladder</b> is the same three-rung rule as /ladderdd without the options put wall (that comes from your Mac): rung 1 is the lower of 2% under the price and 1.5% under the 10-day low, rung 2 is 2.5% under rung 1, rung 3 is 3.5% under rung 2, split 40 / 40 / 20. Amounts are yours to set. For the put-wall version run /ladderdd in Telegram.</p>
+        <p class="note"><b>Price vs cheap line</b> is negative when the price is below the line (the further below, the cheaper). <b>Return to target</b> is the 12-month analyst target against today's price.</p>
+        <p class="note"><b>Flagged</b> rows are the company types where this method is weakest: zero or negative earnings (no P/E at all), under three years of history, two years of falling revenue. They are hidden by default, as are ranges that are too jumpy to trust. A range is also marked unreliable when the multiple's history has a heavy tail (ordinary spread above 60% of the average): Uber and AppLovin looked cheap on the robust spread but Stock Simplifier rated them Fair. Loss-makers cannot be scanned because only P/E is used.</p>
+        <p class="note"><b>How accurate is it?</b> Yahoo only holds about 3 to 5 years of earnings, and its quarterly earnings mix split-adjusted and unadjusted values (corrected here). Against Stock Simplifier on 17 P/E symbols the zone matched on 13 (76%), the average was within 15% on 11 of 15, and today's multiple within about 2%. Spin-offs and one-off gains distort some averages. This is a first filter, not a buy list: check any name in the Fair Value Desk (Trading View data, plus Nash and Graham) before acting.</p>
+        <p class="note">The universe is the ISUS holdings of 26 Oct 2026 that are also in the S&amp;P 500, with Financials and Real Estate removed (119 symbols). Rebuild it when ISUS or the index changes.</p>
+      </div>
+    </details>
+  </section>
+</div>
+
+<script>
+let db = null, RES = {}, CYC = {}, CYC_AT = 0, VAL_AT = 0, TAB = 'under', TM = 'any', SORT = 'cheap', SECS = null, META = null;
+const isBuy = r => { const c = CYC[r.t]; return !!c && (c.action === 'ADD' || c.action === 'DOUBLE DOWN'); };
+function timingOk(r) { const c = CYC[r.t]; if (TM === 'any') return true; if (!c) return false; if (TM === 'buy') return isBuy(r); if (TM === 'add') return c.action === 'ADD'; if (TM === 'dd') return c.action === 'DOUBLE DOWN'; if (TM === 'conf') return isBuy(r) && !!c.confirmed; return true; }
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const money = (v, c) => (v == null || !isFinite(v)) ? '–' : (v < 0 ? '−' : '') + ((c || 'USD') === 'USD' ? '$' : (c + ' ')) + Math.abs(v).toLocaleString('en-GB', { minimumFractionDigits: Math.abs(v) < 100 ? 2 : 0, maximumFractionDigits: Math.abs(v) < 100 ? 2 : 0 });
+const pc = (v, d = 0) => (v == null || !isFinite(v)) ? '–' : (v >= 0 ? '+' : '−') + Math.abs(v * 100).toFixed(d) + '%';
+// The row's class: very attractive, attractive, near (fair but within 8% above the cheap line), or its own zone.
+function band(r) { if (r.status !== 'ok') return 'nodata'; if (r.zone === 'go') return 'go'; if (r.zone === 'under') return 'under'; if (r.zone === 'fair' && r.cheap > 0 && r.price <= r.cheap * 1.08) return 'near'; return r.zone; }
+const ZLAB = { go: 'Very attractive', under: 'Attractive', near: 'Near the line', fair: 'Fair value', exp: 'Expensive', vexp: 'Very expensive' };
+function visible() {
+  const hf = $('hideflag').checked, hu = $('hideunrel').checked, mr = parseFloat($('minret').value) || 0;
+  let rows = Object.values(RES).filter(r => r.status === 'ok');
+  if (TAB === 'buy') rows = rows.filter(r => (band(r) === 'go' || band(r) === 'under') && isBuy(r));
+  else if (TAB !== 'all' && TAB !== 'anybuy') rows = rows.filter(r => band(r) === TAB);
+  if (TAB === 'anybuy') rows = rows.filter(isBuy);
+  rows = rows.filter(timingOk);
+  if (SECS) rows = rows.filter(r => SECS.has(r.sector));
+  if (hf) rows = rows.filter(r => !(r.flags || []).length);
+  if (hu) rows = rows.filter(r => r.reliable);
+  if (mr > 0) rows = rows.filter(r => r.up != null && r.up * 100 >= mr);
+  // Cheapest first is price against the cheap line. Return to target sorts on the analyst-target return; names with no target go last either way.
+  if (SORT === 'upd' || SORT === 'upa') { const dir = SORT === 'upd' ? -1 : 1; return rows.sort((a, b) => { if (a.up == null && b.up == null) return 0; if (a.up == null) return 1; if (b.up == null) return -1; return dir * (a.up - b.up); }); }
+  return rows.sort((a, b) => (a.vs == null ? 9 : a.vs) - (b.vs == null ? 9 : b.vs));
+}
+const CYC_PILL = { 'ADD': 'add', 'DOUBLE DOWN': 'dd', 'HOLD': 'hold', 'TRIM': 'trim' };
+function timingCell(r) {
+  const c = CYC[r.t]; if (!c) return '<td class="note">no cycle data</td>';
+  const buy = c.action === 'ADD' || c.action === 'DOUBLE DOWN';
+  const conf = buy ? (c.confirmed ? '✓ bounce confirmed' : '⏳ waiting for the 5-day average to be reclaimed') : '';
+  return '<td><span class="pill ' + CYC_PILL[c.action] + '">' + esc(c.stage) + ' · ' + esc(c.action) + '</span><small>' + conf + (conf ? ' · ' : '') + 'RSI ' + c.rsi.toFixed(0) + ', ' + c.pctHigh.toFixed(0) + '% from the 52-week high</small></td>';
+}
+function ladderCell(r) {
+  const c = CYC[r.t]; if (!c || !c.rungs) return '<td>–</td>';
+  return '<td class="n" style="white-space:normal">' + c.rungs.map((x, i) => (i + 1) + '. ' + money(x, r.cur)).join('<br>') + '<small style="font-family:var(--f-body)">' + (c.action === 'ADD' || c.action === 'DOUBLE DOWN' ? 'in a buy zone' : 'cycle says ' + esc(c.action.toLowerCase()) + ', so these are patient levels') + '</small></td>';
+}
+function render() {
+  const rows = visible(), all = Object.values(RES), ok = all.filter(r => r.status === 'ok');
+  const cnt = k => ok.filter(r => band(r) === k).length;
+  const asOf = all.length ? new Date(VAL_AT || Math.max(...all.map(r => r.fetchedAt || 0))).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+  $('runmeta').textContent = all.length ? 'Yahoo scan of ' + all.length + ' symbols, latest data ' + asOf + '. Cycle data ' + (CYC_AT ? new Date(CYC_AT).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'not loaded') + '. Prices are as of the scan, so refresh before acting.' : 'No scan loaded yet. Ask Claude to refresh the Fair Value Screener from Yahoo.';
+  $('count').textContent = all.length ? 'Very attractive ' + cnt('go') + ', Attractive ' + cnt('under') + ', Near the line ' + cnt('near') + ', no P/E ' + all.filter(r => r.status === 'nodata').length + ', failed ' + all.filter(r => r.status === 'failed').length + '. Cheap and in a buy zone: ' + ok.filter(r => (band(r) === 'go' || band(r) === 'under') && isBuy(r)).length + '. Showing ' + rows.length + '.' : '';
+  if (!rows.length) { $('rows').innerHTML = '<tr><td colspan="13" class="note">' + (all.length ? 'Nothing matches these filters.' : 'No results yet.') + '</td></tr>'; return; }
+  $('rows').innerHTML = rows.map(r => {
+    const b = band(r), fl = (r.flags || []).length ? '<span class="pill flag" title="' + esc(r.flags.join('  ')) + '" tabindex="0">' + r.flags.length + (r.flags.length === 1 ? ' flag' : ' flags') + '</span>' : '';
+    const unrel = r.reliable ? '' : ' <span class="pill flag" title="The history of this multiple is too jumpy to trust, so the lines are a rough guide only." tabindex="0">unreliable</span>';
+    return '<tr class="' + (r.reliable ? '' : 'dim') + '"><td><span class="sym"><a href="https://www.tradingview.com/symbols/' + esc((r.sym || r.t).replace(':', '-')) + '/" target="_blank" rel="noopener">' + esc(r.t) + '</a></span><small>' + esc(r.name) + ' · ' + esc(r.sector) + '</small></td>' +
+      '<td><span class="pill ' + b + '">' + ZLAB[b] + '</span>' + unrel + '</td><td>' + r.phase + '<small>' + esc(r.phaseName) + '</small></td>' +
+      '<td class="n">' + money(r.price, r.cur) + '</td><td>' + esc(r.measure) + ' ' + r.now.toFixed(1) + 'x<small>average ' + r.mean.toFixed(1) + 'x, ' + r.yrs.toFixed(1) + ' years</small></td>' +
+      '<td class="n">' + money(r.vcheap, r.cur) + '</td><td class="n">' + money(r.cheap, r.cur) + '</td><td class="n">' + pc(r.vs, 0) + '</td>' + timingCell(r) + ladderCell(r) + '<td class="n">' + money(r.target, r.cur) + '</td><td class="n">' + pc(r.up, 0) + '</td><td>' + fl + '</td></tr>';
+  }).join('');
+}
+$('tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b) return; TAB = b.dataset.tab; document.querySelectorAll('#tabs .chip').forEach(x => x.setAttribute('aria-pressed', String(x === b))); render(); });
+['hideflag', 'hideunrel', 'minret'].forEach(id => $(id).addEventListener('change', render));
+function setSort(v) { SORT = v; document.querySelectorAll('#sort .chip').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.sort === v))); render(); }
+$('sort').addEventListener('click', e => { const b = e.target.closest('[data-sort]'); if (b) setSort(b.dataset.sort); });
+$('thup').addEventListener('click', () => setSort(SORT === 'upd' ? 'upa' : SORT === 'upa' ? 'cheap' : 'upd'));
+$('timing').addEventListener('click', e => { const b = e.target.closest('[data-tm]'); if (!b) return; TM = b.dataset.tm; document.querySelectorAll('#timing .chip').forEach(x => x.setAttribute('aria-pressed', String(x === b))); render(); });
+function buildSectors(list) {
+  const keep = SECS ? new Set(SECS) : null, all = SECS === null;
+  $('secbox').innerHTML = '<label><button type="button" class="chip" id="secall">All</button> <button type="button" class="chip" id="secnone">None</button></label>' + list.map(x => '<label><input type="checkbox" data-sec="' + esc(x) + '"' + (all || (keep && keep.has(x)) ? ' checked' : '') + '> ' + esc(x) + '</label>').join('');
+  const upd = () => { const boxes = [...document.querySelectorAll('#secbox [data-sec]')]; const on = boxes.filter(b => b.checked).map(b => b.dataset.sec); SECS = on.length === boxes.length ? null : new Set(on); $('secsum').textContent = SECS === null ? 'Sectors (all)' : 'Sectors (' + on.length + ' of ' + boxes.length + ')'; render(); };
+  $('secbox').addEventListener('change', upd);
+  $('secbox').addEventListener('click', e => { const b = e.target.closest('#secall, #secnone'); if (!b) return; document.querySelectorAll('#secbox [data-sec]').forEach(x => { x.checked = b.id === 'secall'; }); upd(); });
+}
+const AGE = { valuation: 10 * 864e5, cycle: 4 * 864e5 };
+const fmt = t => new Date(t).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+function runStatus(st) {
+  const bits = [], bad = [];
+  [['cycle', 'Timing'], ['valuation', 'Valuation']].forEach(([k, lab]) => {
+    const x = st && st[k]; if (!x) return;
+    const stale = x.lastOkAt && Date.now() - x.lastOkAt > AGE[k];
+    bits.push(lab + ': last run ' + fmt(x.lastRunAt) + (x.ok ? ' (ok, ' + x.count + ' symbols)' : ' (FAILED' + (x.note ? ': ' + x.note : '') + ', showing the last good data from ' + (x.lastOkAt ? fmt(x.lastOkAt) : 'earlier') + ')'));
+    if (!x.ok || stale) bad.push(lab + (stale ? ' data is more than ' + Math.round(AGE[k] / 864e5) + ' days old' : ' run failed'));
+  });
+  $('schedule').innerHTML = (bits.length ? esc(bits.join('  ·  ')) + '. ' : '') + 'Refreshes itself: timing every weekday at 12:00 UTC (before the US open), valuation every Monday.' + (bad.length ? ' <span class="status err">Check: ' + esc(bad.join('; ')) + '.</span>' : '');
+}
+(async function boot() {
+  const get = async f => { const r = await fetch(f + '?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error(f + ' ' + r.status); return r.json(); };
+  try {
+    const [v, c] = await Promise.all([get('valuation.json'), get('cycle.json')]);
+    RES = v.items || {}; VAL_AT = v.asOf || 0; CYC = c.items || {}; CYC_AT = c.asOf || 0;
+    buildSectors([...new Set(Object.values(RES).map(r => r.sector).filter(Boolean))].sort());
+    render();
+  } catch (e) { $('runmeta').textContent = 'Could not load the scan data: ' + e.message; }
+  try { runStatus(await get('status.json')); } catch (e) {}
+})();
+</script></body></html>
