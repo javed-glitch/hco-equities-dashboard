@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Price Movement | HCO Equities Dashboard</title><link rel="icon" href="../favicon.png">
+<style>
+:root{--bg:#F3F6FA;--surface:#fff;--ink:#0F1B2D;--muted:#566377;--line:#DAE2EC;--brand:#004AAC;--soft:#E8F0FB;--buy:#0B6B45;--buy-bg:#D9F2E6;--trim:#8A4B00;--trim-bg:#FDEBC8;--up:#1B6B3A;--down:#B03020;--flat:#7A8597}
+@media (prefers-color-scheme:dark){:root{--bg:#0B121C;--surface:#121C2A;--ink:#E7EEF8;--muted:#94A3B8;--line:#233246;--brand:#6FA6F5;--soft:#17263A;--buy:#6EE7B0;--buy-bg:#0F3A2A;--trim:#FBBF24;--trim-bg:#3D2A07;--up:#5CC47A;--down:#E88070;--flat:#8693A8;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 64px}
+.logo{height:42px;background:#fff;border-radius:10px;padding:6px 12px;display:block}
+.back{display:inline-block;margin:18px 0 0;color:var(--brand);text-decoration:none;font-size:14px;font-weight:600}
+h1{font-size:28px;line-height:1.15;margin:10px 0 4px;letter-spacing:-.01em}
+.int{display:inline-block;vertical-align:middle;margin-left:8px;font-size:12px;font-weight:700;letter-spacing:.08em;color:#8A1F11;background:#FBE3DE;border-radius:6px;padding:3px 9px}
+@media (prefers-color-scheme:dark){.int{color:#F4B5A8;background:#4B1C13}}
+.lede{color:var(--muted);margin:0 0 6px;max-width:70ch}
+.asof{color:var(--muted);font-size:13px;margin:0 0 18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:16px}
+.card h2{font-size:17px;margin:0 0 8px}
+.banner.act{border-color:var(--brand)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.chip{display:inline-flex;gap:6px;align-items:baseline;border-radius:10px;padding:6px 12px;font-size:14px;font-weight:600}
+.chip.buy{background:var(--buy-bg);color:var(--buy)}.chip.trim{background:var(--trim-bg);color:var(--trim)}
+.chip small{font-weight:500;opacity:.85}
+.legend{display:flex;flex-wrap:wrap;gap:20px}
+.legend table{border-collapse:collapse;font-size:14px}
+.legend th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;padding:0 14px 4px 0}
+.legend td{padding:3px 14px 3px 0}
+.legend .rule{flex:1 1 280px;color:var(--muted);font-size:14px}
+.legend .rule b{color:var(--ink)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table.pm{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+.pm th,.pm td{padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:right}
+.pm th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;vertical-align:bottom}
+.pm th:first-child,.pm td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1}
+.pm tr.grp td{background:var(--soft);color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-align:left;padding:6px 10px}
+.pm tr:last-child td{border-bottom:none}
+.tk{font-weight:700}
+.tag{margin-left:6px;font-size:10px;font-weight:700;letter-spacing:.05em;color:var(--brand);background:var(--soft);border-radius:99px;padding:1px 7px}
+.up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--flat)}
+.hot{background:var(--trim-bg);color:var(--trim);border-radius:4px;padding:1px 4px}
+.cold{background:var(--buy-bg);color:var(--buy);border-radius:4px;padding:1px 4px}
+td.dipc{background:var(--buy-bg);color:var(--buy);font-weight:700}
+th.m1{color:var(--brand)}
+td.sig{text-align:left}
+.pill{display:inline-block;border-radius:8px;padding:3px 10px;font-weight:700;font-size:13px}
+.pill.buy{background:var(--buy-bg);color:var(--buy)}.pill.trim{background:var(--trim-bg);color:var(--trim)}.pill.hold{color:var(--flat);font-weight:600;padding-left:0}
+.sub{display:block;font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px}
+footer{margin-top:22px;color:var(--muted);font-size:13px}
+</style></head><body><div class="wrap">
+<img class="logo" src="../logo.png" alt="H &amp; Co Investments">
+<a class="back" href="../">&larr; Equities dashboard</a>
+<h1>PRICE MOVEMENT <span class="int">INTERNAL ONLY</span></h1>
+<p class="lede">How far each stock has moved over 1 day to its full history, with a buy or trim signal from the 1-month move.</p>
+<p class="asof" id="asof">Loading&hellip;</p>
+
+<div class="card banner" id="banner"></div>
+
+<div class="card">
+  <h2>How the signal works</h2>
+  <div class="legend">
+    <div class="rule"><b>What it measures:</b> the stock's price move over the last <b>1 month</b> (30 days). <b>What the % means:</b> a percentage of the shares you <b>already hold</b> in that stock. It is not a percentage of your whole portfolio. Example: <b>TRIM 30%</b> means sell 30% of the shares you hold of that stock; <b>BUY 15%</b> means add shares equal to 15% of what you hold. If you hold none, there is nothing to size from, so use it as a prompt to review. The ladder is a guide, not advice.</div>
+    <table><thead><tr><th>1-month drop</th><th>Action</th></tr></thead><tbody id="dropRules"></tbody></table>
+    <table><thead><tr><th>1-month rise</th><th>Action</th></tr></thead><tbody id="riseRules"></tbody></table>
+  </div>
+</div>
+
+<div class="scroll"><table class="pm" id="pm"></table></div>
+<footer>Prices from Yahoo Finance, as of each scan. Targets are analyst consensus. <b>30% Entry</b> is the price at which a +30% gain would reach the 52-week high (or the analyst target). Highlighted price/entry cells mean the price is already below that entry. Satellite, swing and core stocks also follow their own rules elsewhere; this table is the simple monthly-move view. Data is for research, not advice.</footer>
+</div>
+<script>
+// Ladder: thresholds on the 1-month move, applied to the % of the CURRENT HOLDING.
+var DROPS=[{min:30,act:"buy",pct:30},{min:20,act:"buy",pct:15},{min:10,act:"hold"}];
+var RISES=[{min:100,act:"trim",pct:60},{min:60,act:"trim",pct:40},{min:50,act:"trim",pct:30},{min:40,act:"trim",pct:20},{min:30,act:"trim",pct:10},{min:20,act:"hold"},{min:10,act:"hold"}];
+var COLS=["1D","1W","1M","2M","3M","4M","6M","1Y","Max"];
+
+function signal(m){
+  if(m==null||isNaN(m))return {act:"hold",txt:"No data"};
+  var rules=m<0?DROPS:RISES,a=Math.abs(m);
+  for(var i=0;i<rules.length;i++){
+    if(a>=rules[i].min){
+      var r=rules[i];
+      if(r.act==="hold")return {act:"hold",txt:"Hold",why:(m<0?"Down ":"Up ")+a.toFixed(0)+"% in 1M"};
+      return {act:r.act,pct:r.pct,txt:(r.act==="buy"?"BUY ":"TRIM ")+r.pct+"%",why:(m<0?"Down ":"Up ")+a.toFixed(0)+"% in 1M"};
+    }
+  }
+  return {act:"hold",txt:"Hold",why:"Within normal range"};
+}
+function pctCell(v){
+  if(v==null)return "<td>—</td>";
+  var cls=v>=20?"hot":(v<=-20?"cold":(v>=0.5?"up":(v<=-0.5?"down":"flat")));
+  var a=Math.abs(v),s=a>=1000?(a/1000).toFixed(1)+"K":a.toFixed(1);
+  return '<td><span class="'+cls+'">'+(v>=0?"+":"-")+s+"%</span></td>";
+}
+function money(cur,v,dp){return cur+v.toLocaleString("en-GB",{minimumFractionDigits:dp,maximumFractionDigits:dp})}
+function tagFor(g){return g==="Satellites"?"SAT":g==="Swing-eligible"?"SWING":g==="Core"?"CORE":"WATCH"}
+function ruleRows(rules,word){
+  return rules.map(function(r){
+    var lo=r.min,hi=null;
+    var txt=(word==="drop"?"-":"+")+lo+"%"+(r.min===100?" or more":" or more");
+    var act=r.act==="hold"?"Hold":(r.act==="buy"?"Buy ":"Trim ")+r.pct+"% of holding";
+    return "<tr><td>"+txt+"</td><td><b>"+act+"</b></td></tr>";
+  }).join("");
+}
+document.getElementById("dropRules").innerHTML=ruleRows(DROPS,"drop")+"<tr><td>under -10%</td><td>Hold</td></tr>";
+document.getElementById("riseRules").innerHTML=ruleRows(RISES,"rise")+"<tr><td>under +10%</td><td>Hold</td></tr>";
+
+var SRC="https://javed-glitch.github.io/options-gravity-4-week-forward-scan-v3/data.json";
+var META={TSLA:["Satellites","$"],PLTR:["Satellites","$"],NVDA:["Satellites","$"],ZETA:["Satellites","$"],AMAT:["Satellites","$"],
+ AMD:["Swing-eligible","$"],MU:["Swing-eligible","$"],AVGO:["Swing-eligible","$"],META:["Swing-eligible","$"],GOOGL:["Swing-eligible","$"],
+ APP:["Watch","$"],"VUSA.L":["Core","£"],"ISDU.L":["Core","$"],"ISUS.L":["Core","£"],"ISWD.L":["Core","£"]};
+var PENCE={"ISUS.L":1,"ISWD.L":1};
+fetch(SRC,{cache:"no-store"}).then(function(r){return r.json()}).then(function(raw){
+  var D={asof:raw.asof,rows:[]};
+  Object.keys(META).forEach(function(s){
+    var p=(raw.P||[]).filter(function(x){return x.sym===s})[0];if(!p)return;
+    var k=PENCE[s]?0.01:1;
+    D.rows.push({sym:s.replace(".L",""),group:META[s][0],cur:META[s][1],last:p.last*k,hi:p.hi*k,tgt:p.tgt,r:p.r});
+  });
+  return D;
+}).then(function(D){
+  document.getElementById("asof").textContent="As of "+D.asof.replace("T"," ")+" UK · refreshed with the Options Gravity board, moves measured to the last close";
+  var head='<thead><tr><th>Ticker</th><th>Signal<span class="sub">from 1M move</span></th><th>Price</th><th>52W Hi</th><th>30% Entry<br>(52W)</th><th>Target</th><th>30% Entry<br>(Tgt)</th>'+COLS.map(function(c){return '<th class="'+(c==="1M"?"m1":"")+'">'+c+"</th>"}).join("")+"</tr></thead>";
+  var body="",grp="",acts=[];
+  D.rows.forEach(function(p){
+    if(p.group!==grp){grp=p.group;body+='<tr class="grp"><td colspan="'+(7+COLS.length)+'">'+grp+"</td></tr>"}
+    var m=p.r["1M"],sg=signal(m);
+    if(sg.act!=="hold")acts.push({sym:p.sym,sg:sg,m:m});
+    var big=p.last<100||p.cur==="£";var dp=big?2:0;
+    var e1=p.hi/1.3,e2=p.tgt?p.tgt/1.3:null;
+    var d1=p.last<e1||(e2!==null&&p.last<e2);
+    var pill=sg.act==="hold"?'<span class="pill hold">Hold</span>':'<span class="pill '+sg.act+'">'+sg.txt+'</span><span class="sub">of your holding · '+sg.why+"</span>";
+    body+='<tr><td><span class="tk">'+p.sym+'</span><span class="tag">'+tagFor(p.group)+'</span></td>'+
+      '<td class="sig">'+pill+'</td>'+
+      '<td'+(d1?' class="dipc"':"")+'>'+money(p.cur,p.last,dp)+'</td><td>'+money(p.cur,p.hi,0)+'</td>'+
+      '<td'+(p.last<e1?' class="dipc"':"")+'>'+money(p.cur,e1,0)+'</td>'+
+      '<td>'+(p.tgt?money(p.cur,p.tgt,0):"—")+'</td>'+
+      '<td'+(e2!==null&&p.last<e2?' class="dipc"':"")+'>'+(e2!==null?money(p.cur,e2,0):"—")+"</td>"+
+      COLS.map(function(c){return pctCell(p.r[c])}).join("")+"</tr>";
+  });
+  document.getElementById("pm").innerHTML=head+"<tbody>"+body+"</tbody>";
+  var b=document.getElementById("banner");
+  if(acts.length){
+    b.className="card banner act";
+    b.innerHTML="<h2>Action today</h2><div>"+acts.length+" stock"+(acts.length>1?"s":"")+" hit a buy or trim step on the 1-month move. Percentages are of your current holding in that stock.</div><div class='chips'>"+
+      acts.map(function(a){return '<span class="chip '+a.sg.act+'">'+a.sym+" "+a.sg.txt+" <small>"+(a.m>=0?"+":"")+a.m.toFixed(0)+"% in 1M</small></span>"}).join("")+"</div>";
+  }else{
+    b.innerHTML="<h2>No buy or trim action today</h2><div>Every stock's 1-month move is inside the hold range (down less than 20% and up less than 30%).</div>";
+  }
+}).catch(function(){document.getElementById("asof").textContent="Could not load the price data";});
+</script>
+</body></html>
