@@ -22,6 +22,12 @@ h1{font-size:28px;line-height:1.15;margin:10px 0 4px;letter-spacing:-.01em}
 .chip{display:inline-flex;gap:6px;align-items:baseline;border-radius:10px;padding:6px 12px;font-size:14px;font-weight:600}
 .chip.buy{background:var(--buy-bg);color:var(--buy)}.chip.trim{background:var(--trim-bg);color:var(--trim)}
 .chip small{font-weight:500;opacity:.85}
+details.card>summary{cursor:pointer;font-size:17px;font-weight:700;list-style:none;display:flex;align-items:center;gap:8px}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::before{content:"\25B8";color:var(--brand);transition:transform .15s}
+details.card[open]>summary::before{transform:rotate(90deg)}
+details.card[open]>summary{margin-bottom:10px}
+.note{margin-top:8px;font-size:13px;color:var(--muted)}
 .legend{display:flex;flex-wrap:wrap;gap:20px}
 .legend table{border-collapse:collapse;font-size:14px}
 .legend th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;padding:0 14px 4px 0}
@@ -51,19 +57,28 @@ footer{margin-top:22px;color:var(--muted);font-size:13px}
 <img class="logo" src="../logo.png" alt="H &amp; Co Investments">
 <a class="back" href="../">&larr; Equities dashboard</a>
 <h1>PRICE MOVEMENT <span class="int">INTERNAL ONLY</span></h1>
-<p class="lede">How far each stock has moved over 1 day to its full history, with a buy or trim signal from the 1-month move.</p>
+<p class="lede">How far each stock has moved over 1 day to its full history, with a buy or trim signal: the 1-month move for stocks, the 3-month move for ETFs.</p>
 <p class="asof" id="asof">Loading&hellip;</p>
 
 <div class="card banner" id="banner"></div>
 
-<div class="card">
-  <h2>How the signal works</h2>
+<details class="card" open>
+  <summary>How the signal works - Stock</summary>
   <div class="legend">
     <div class="rule"><b>What it measures:</b> the stock's price move over the last <b>1 month</b> (30 days). <b>What the % means:</b> a percentage of the shares you <b>already hold</b> in that stock. It is not a percentage of your whole portfolio. Example: <b>TRIM 30%</b> means sell 30% of the shares you hold of that stock; <b>BUY 15%</b> means add shares equal to 15% of what you hold. If you hold none, there is nothing to size from, so use it as a prompt to review. The ladder is a guide, not advice.</div>
     <table><thead><tr><th>1-month drop</th><th>Action</th></tr></thead><tbody id="dropRules"></tbody></table>
     <table><thead><tr><th>1-month rise</th><th>Action</th></tr></thead><tbody id="riseRules"></tbody></table>
   </div>
-</div>
+</details>
+
+<details class="card" open>
+  <summary>How the signal works - ETF</summary>
+  <div class="legend">
+    <div class="rule"><b>Applies to:</b> the core ETFs (VUSA, ISDU, ISUS, ISWD). <b>What it measures:</b> the ETF's price move over the last <b>3 months</b>, not 1 month. ETFs move about a quarter as much as single stocks, so the steps are smaller and the window is longer to keep the signal as rare and as clean as the stock one. <b>What the % means:</b> same as for stocks, a percentage of the units you already hold. <b>Trims are half the size</b> of the stock ladder because core is the compounding engine. There is no top rung: a rise big enough for it essentially never happens in 3 months. <b>Trims only apply while core is above 50% of your account</b> (check it in /interimledger; this page cannot see your holdings). Buys have no such condition. A guide based on history, not a forecast or advice.</div>
+    <table><thead><tr><th>3-month drop</th><th>Action</th></tr></thead><tbody id="etfDropRules"></tbody></table>
+    <table><thead><tr><th>3-month rise</th><th>Action</th></tr></thead><tbody id="etfRiseRules"></tbody></table>
+  </div>
+</details>
 
 <div class="scroll"><table class="pm" id="pm"></table></div>
 <footer>Prices from Yahoo Finance, as of each scan. Targets are analyst consensus. <b>30% Entry</b> is the price at which a +30% gain would reach the 52-week high (or the analyst target). Highlighted price/entry cells mean the price is already below that entry. Satellite, swing and core stocks also follow their own rules elsewhere; this table is the simple monthly-move view. Data is for research, not advice.</footer>
@@ -72,16 +87,20 @@ footer{margin-top:22px;color:var(--muted);font-size:13px}
 // Ladder: thresholds on the 1-month move, applied to the % of the CURRENT HOLDING.
 var DROPS=[{min:30,act:"buy",pct:30},{min:20,act:"buy",pct:15},{min:10,act:"hold"}];
 var RISES=[{min:100,act:"trim",pct:60},{min:60,act:"trim",pct:40},{min:50,act:"trim",pct:30},{min:40,act:"trim",pct:20},{min:30,act:"trim",pct:10},{min:20,act:"hold"},{min:10,act:"hold"}];
+// ETF ladder: thresholds on the 3-month move, trims are half the stock sizes, no top rung.
+var ETF_DROPS=[{min:13,act:"buy",pct:30},{min:7,act:"buy",pct:15}];
+var ETF_RISES=[{min:22,act:"trim",pct:20},{min:17,act:"trim",pct:15},{min:14.5,act:"trim",pct:10},{min:12,act:"trim",pct:5}];
 var COLS=["1D","1W","1M","2M","3M","4M","6M","1Y","Max"];
 
-function signal(m){
+function signal(m,etf){
   if(m==null||isNaN(m))return {act:"hold",txt:"No data"};
-  var rules=m<0?DROPS:RISES,a=Math.abs(m);
+  var drops=etf?ETF_DROPS:DROPS,rises=etf?ETF_RISES:RISES,per=etf?"3M":"1M";
+  var rules=m<0?drops:rises,a=Math.abs(m);
   for(var i=0;i<rules.length;i++){
     if(a>=rules[i].min){
       var r=rules[i];
-      if(r.act==="hold")return {act:"hold",txt:"Hold",why:(m<0?"Down ":"Up ")+a.toFixed(0)+"% in 1M"};
-      return {act:r.act,pct:r.pct,txt:(r.act==="buy"?"BUY ":"TRIM ")+r.pct+"%",why:(m<0?"Down ":"Up ")+a.toFixed(0)+"% in 1M"};
+      if(r.act==="hold")return {act:"hold",txt:"Hold",why:(m<0?"Down ":"Up ")+a.toFixed(0)+"% in "+per};
+      return {act:r.act,pct:r.pct,txt:(r.act==="buy"?"BUY ":"TRIM ")+r.pct+"%",why:(m<0?"Down ":"Up ")+a.toFixed(0)+"% in "+per,etf:!!etf};
     }
   }
   return {act:"hold",txt:"Hold",why:"Within normal range"};
@@ -97,13 +116,15 @@ function tagFor(g){return g==="Satellites"?"SAT":g==="Swing-eligible"?"SWING":g=
 function ruleRows(rules,word){
   return rules.map(function(r){
     var lo=r.min,hi=null;
-    var txt=(word==="drop"?"-":"+")+lo+"%"+(r.min===100?" or more":" or more");
+    var txt=(word==="drop"?"-":"+")+lo+"%"+" or more";
     var act=r.act==="hold"?"Hold":(r.act==="buy"?"Buy ":"Trim ")+r.pct+"% of holding";
     return "<tr><td>"+txt+"</td><td><b>"+act+"</b></td></tr>";
   }).join("");
 }
 document.getElementById("dropRules").innerHTML=ruleRows(DROPS,"drop")+"<tr><td>under -10%</td><td>Hold</td></tr>";
 document.getElementById("riseRules").innerHTML=ruleRows(RISES,"rise")+"<tr><td>under +10%</td><td>Hold</td></tr>";
+document.getElementById("etfDropRules").innerHTML=ruleRows(ETF_DROPS,"drop")+"<tr><td>under -7%</td><td>Hold</td></tr>";
+document.getElementById("etfRiseRules").innerHTML=ruleRows(ETF_RISES,"rise")+"<tr><td>under +12%</td><td>Hold</td></tr>";
 
 var SRC="https://javed-glitch.github.io/options-gravity-4-week-forward-scan-v3/data.json";
 var META={TSLA:["Satellites","$"],PLTR:["Satellites","$"],NVDA:["Satellites","$"],ZETA:["Satellites","$"],AMAT:["Satellites","$"],
@@ -120,16 +141,16 @@ fetch(SRC,{cache:"no-store"}).then(function(r){return r.json()}).then(function(r
   return D;
 }).then(function(D){
   document.getElementById("asof").textContent="As of "+D.asof.replace("T"," ")+" UK · refreshed with the Options Gravity board, moves measured to the last close";
-  var head='<thead><tr><th>Ticker</th><th>Signal<span class="sub">from 1M move</span></th><th>Price</th><th>52W Hi</th><th>30% Entry<br>(52W)</th><th>Target</th><th>30% Entry<br>(Tgt)</th>'+COLS.map(function(c){return '<th class="'+(c==="1M"?"m1":"")+'">'+c+"</th>"}).join("")+"</tr></thead>";
+  var head='<thead><tr><th>Ticker</th><th>Signal<span class="sub">stocks 1M · ETFs 3M</span></th><th>Price</th><th>52W Hi</th><th>30% Entry<br>(52W)</th><th>Target</th><th>30% Entry<br>(Tgt)</th>'+COLS.map(function(c){return '<th class="'+(c==="1M"?"m1":"")+'">'+c+"</th>"}).join("")+"</tr></thead>";
   var body="",grp="",acts=[];
   D.rows.forEach(function(p){
     if(p.group!==grp){grp=p.group;body+='<tr class="grp"><td colspan="'+(7+COLS.length)+'">'+grp+"</td></tr>"}
-    var m=p.r["1M"],sg=signal(m);
-    if(sg.act!=="hold")acts.push({sym:p.sym,sg:sg,m:m});
+    var etf=p.group==="Core",m=p.r[etf?"3M":"1M"],sg=signal(m,etf);
+    if(sg.act!=="hold")acts.push({sym:p.sym,sg:sg,m:m,etf:etf});
     var big=p.last<100||p.cur==="£";var dp=big?2:0;
     var e1=p.hi/1.3,e2=p.tgt?p.tgt/1.3:null;
     var d1=p.last<e1||(e2!==null&&p.last<e2);
-    var pill=sg.act==="hold"?'<span class="pill hold">Hold</span>':'<span class="pill '+sg.act+'">'+sg.txt+'</span><span class="sub">of your holding · '+sg.why+"</span>";
+    var pill=sg.act==="hold"?'<span class="pill hold">Hold</span>':'<span class="pill '+sg.act+'">'+sg.txt+'</span><span class="sub">of your holding · '+sg.why+(sg.etf&&sg.act==="trim"?" · only if core above 50%":"")+"</span>";
     body+='<tr><td><span class="tk">'+p.sym+'</span><span class="tag">'+tagFor(p.group)+'</span></td>'+
       '<td class="sig">'+pill+'</td>'+
       '<td'+(d1?' class="dipc"':"")+'>'+money(p.cur,p.last,dp)+'</td><td>'+money(p.cur,p.hi,0)+'</td>'+
@@ -141,11 +162,13 @@ fetch(SRC,{cache:"no-store"}).then(function(r){return r.json()}).then(function(r
   document.getElementById("pm").innerHTML=head+"<tbody>"+body+"</tbody>";
   var b=document.getElementById("banner");
   if(acts.length){
+    var hasEtfTrim=acts.some(function(a){return a.etf&&a.sg.act==="trim"});
     b.className="card banner act";
-    b.innerHTML="<h2>Action today</h2><div>"+acts.length+" stock"+(acts.length>1?"s":"")+" hit a buy or trim step on the 1-month move. Percentages are of your current holding in that stock.</div><div class='chips'>"+
-      acts.map(function(a){return '<span class="chip '+a.sg.act+'">'+a.sym+" "+a.sg.txt+" <small>"+(a.m>=0?"+":"")+a.m.toFixed(0)+"% in 1M</small></span>"}).join("")+"</div>";
+    b.innerHTML="<h2>Action today</h2><div>"+acts.length+" position"+(acts.length>1?"s":"")+" hit a buy or trim step (stocks on the 1-month move, ETFs on the 3-month move). Percentages are of your current holding.</div><div class='chips'>"+
+      acts.map(function(a){return '<span class="chip '+a.sg.act+'">'+a.sym+(a.etf?" (ETF)":"")+" "+a.sg.txt+" <small>"+(a.m>=0?"+":"")+a.m.toFixed(0)+"% in "+(a.etf?"3M":"1M")+"</small></span>"}).join("")+"</div>"+
+      (hasEtfTrim?"<div class='note'>ETF trims apply only while core is above 50% of your account. Check /interimledger before acting.</div>":"");
   }else{
-    b.innerHTML="<h2>No buy or trim action today</h2><div>Every stock's 1-month move is inside the hold range (down less than 20% and up less than 30%).</div>";
+    b.innerHTML="<h2>No buy or trim action today</h2><div>Every stock is inside its 1-month hold range (down less than 20%, up less than 30%) and every ETF inside its 3-month hold range (down less than 7%, up less than 12%).</div>";
   }
 }).catch(function(){document.getElementById("asof").textContent="Could not load the price data";});
 </script>
