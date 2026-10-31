@@ -47,6 +47,8 @@ table.pm{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numer
 .pm tr.grp.shut td::before{content:"\25B8"}
 .pm tr.grp .n{font-weight:500;letter-spacing:0;text-transform:none;margin-left:6px}
 .pm td.sig .sub{white-space:normal;max-width:200px}
+.zone{font-weight:700;letter-spacing:.04em;font-size:11px}
+.zone.add{color:var(--buy)}.zone.trim{color:var(--trim)}.zone.hold{color:var(--flat)}
 .tools{display:flex;gap:8px;margin:0 0 8px}
 .tools button{font:600 12px/1 inherit;font-family:inherit;color:var(--brand);background:var(--soft);border:0;border-radius:8px;padding:7px 12px;cursor:pointer}
 .pm td.ups{font-weight:600}
@@ -123,7 +125,7 @@ function pctCell(v){
 function cyc(p){
   if(!p.stage)return '<span class="flat">—</span>';
   var c=STAGE_COLORS[p.stage]||["#888","#fff"];
-  return '<span class="pill" style="background:'+c[0]+';color:'+c[1]+';font-size:12px;padding:2px 8px">'+p.stage+'</span>';
+  return '<span class="pill" style="background:'+c[0]+';color:'+c[1]+';font-size:12px;padding:2px 8px">'+p.stage+'</span>'+(p.zone?'<span class="sub zone '+(p.zone==="HOLD"?"hold":p.zone==="TRIM"?"trim":"add")+'">'+p.zone+'</span>':"");
 }
 function money(cur,v,dp){return cur+v.toLocaleString("en-GB",{minimumFractionDigits:dp,maximumFractionDigits:dp})}
 function tagFor(g){return g==="Satellites"?"SAT":g==="Swing-eligible"?"SWING":g==="Core"?"CORE":"WATCH"}
@@ -154,13 +156,13 @@ Promise.all([getJ(REG),getJ(SRC),getJ(CYC).catch(function(){return null})]).then
   reg.symbols.slice().sort(function(x,y){return order.indexOf(x.group)-order.indexOf(y.group)}).forEach(function(e){
     var p=(raw.P||[]).filter(function(x){return x.sym===(e.yahoo||e.sym)})[0];
     var k=e.pence?0.01:1,c=cyc[e.sym];
-    D.rows.push({sym:e.sym,group:e.group,cur:e.ccy,scanned:!!p,stage:c&&c.stage_name,
+    D.rows.push({sym:e.sym,group:e.group,cur:e.ccy,scanned:!!p,stage:c&&c.stage_name,zone:c&&c.cycle_zone,
       last:p&&p.last*k,hi:p&&p.hi*k,tgt:p&&p.tgt,r:p?p.r:{}});
   });
   return D;
 }).then(function(D){
   document.getElementById("asof").textContent="As of "+D.asof.replace("T"," ")+" UK · refreshed with the Options Gravity board, moves measured to the last close";
-  var head='<thead><tr><th>Ticker</th><th>Signal<span class="sub">stocks 1M · ETFs 6M</span></th><th>Cycle<span class="sub">market-scan</span></th><th>Price</th><th>52W Hi</th><th>30% Entry<br>(52W)</th><th>Target</th><th>Upside<br>to Tgt</th><th>Per<br>&pound;1,000</th><th>30% Entry<br>(Tgt)</th>'+COLS.map(function(c){return '<th class="'+(c==="1M"?"m1":"")+'">'+c+"</th>"}).join("")+"</tr></thead>";
+  var head='<thead><tr><th>Ticker</th><th>Signal</th><th>Cycle<span class="sub">market-scan</span></th><th>Price</th><th>52W Hi</th><th>30% Entry<br>(52W)</th><th>Target</th><th>Upside<br>to Tgt</th><th>Per<br>&pound;1,000</th><th>30% Entry<br>(Tgt)</th>'+COLS.map(function(c){return '<th class="'+(c==="1M"?"m1":"")+'">'+c+"</th>"}).join("")+"</tr></thead>";
   var body="",grp="",acts=[];
   D.rows.forEach(function(p){
     if(p.group!==grp){grp=p.group;body+='<tr class="grp" data-g="'+grp+'"><td colspan="'+(10+COLS.length)+'">'+grp+'<span class="n">'+D.rows.filter(function(x){return x.group===grp}).length+"</span></td></tr>"}
