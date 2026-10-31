@@ -90,7 +90,7 @@ footer{margin-top:22px;color:var(--muted);font-size:13px}
 
 <div class="tools"><button id="openAll">Expand all</button><button id="shutAll">Collapse all</button></div>
 <div class="scroll"><table class="pm" id="pm"></table></div>
-<footer>Prices from Yahoo Finance, as of each scan. Targets are analyst consensus. <b>30% Entry</b> is the price at which a +30% gain would reach the 52-week high (or the analyst target). Highlighted price/entry cells mean the price is already below that entry. <b>Upside to Tgt</b> is the analyst target over the current price; <b>Per £1,000</b> is that upside applied to £1,000 (a % figure, so currency-neutral). Satellite, swing and core stocks also follow their own rules elsewhere; this table is the simple monthly-move view. Data is for research, not advice.</footer>
+<footer>Prices from Yahoo Finance, as of each scan. Targets are analyst consensus. <b>Cycle</b> is the market-scan cycle stage, shown as published; a dash means that symbol isn't in the cycle scan yet. Symbols come from the shared <b>hco-symbols</b> list; \"Not scanned\" means the price feed doesn't cover it yet. <b>30% Entry</b> is the price at which a +30% gain would reach the 52-week high (or the analyst target). Highlighted price/entry cells mean the price is already below that entry. <b>Upside to Tgt</b> is the analyst target over the current price; <b>Per £1,000</b> is that upside applied to £1,000 (a % figure, so currency-neutral). Satellite, swing and core stocks also follow their own rules elsewhere; this table is the simple monthly-move view. Data is for research, not advice.</footer>
 </div>
 <script>
 // Ladder: thresholds on the 1-month move, applied to the % of the CURRENT HOLDING.
@@ -120,6 +120,11 @@ function pctCell(v){
   var a=Math.abs(v),s=a>=1000?(a/1000).toFixed(1)+"K":a.toFixed(1);
   return '<td><span class="'+cls+'">'+(v>=0?"+":"-")+s+"%</span></td>";
 }
+function cyc(p){
+  if(!p.stage)return '<span class="flat">—</span>';
+  var c=STAGE_COLORS[p.stage]||["#888","#fff"];
+  return '<span class="pill" style="background:'+c[0]+';color:'+c[1]+';font-size:12px;padding:2px 8px">'+p.stage+'</span>';
+}
 function money(cur,v,dp){return cur+v.toLocaleString("en-GB",{minimumFractionDigits:dp,maximumFractionDigits:dp})}
 function tagFor(g){return g==="Satellites"?"SAT":g==="Swing-eligible"?"SWING":g==="Core"?"CORE":"WATCH"}
 function ruleRows(rules,word){
@@ -136,26 +141,35 @@ document.getElementById("etfDropRules").innerHTML=ruleRows(ETF_DROPS,"drop")+"<t
 document.getElementById("etfRiseRules").innerHTML=ruleRows(ETF_RISES,"rise")+"<tr><td>under +20%</td><td>Hold</td></tr>";
 
 var SRC="https://javed-glitch.github.io/options-gravity-4-week-forward-scan-v3/data.json";
-var META={TSLA:["Satellites","$"],PLTR:["Satellites","$"],NVDA:["Satellites","$"],ZETA:["Satellites","$"],AMAT:["Satellites","$"],
- AMD:["Swing-eligible","$"],MU:["Swing-eligible","$"],AVGO:["Swing-eligible","$"],META:["Swing-eligible","$"],GOOGL:["Swing-eligible","$"],
- APP:["Watch","$"],"VUSA.L":["Core","£"],"ISDU.L":["Core","$"],"ISUS.L":["Core","£"],"ISWD.L":["Core","£"]};
-var PENCE={"ISUS.L":1,"ISWD.L":1};
-fetch(SRC,{cache:"no-store"}).then(function(r){return r.json()}).then(function(raw){
-  var D={asof:raw.asof,rows:[]};
-  Object.keys(META).forEach(function(s){
-    var p=(raw.P||[]).filter(function(x){return x.sym===s})[0];if(!p)return;
-    var k=PENCE[s]?0.01:1;
-    D.rows.push({sym:s.replace(".L",""),group:META[s][0],cur:META[s][1],last:p.last*k,hi:p.hi*k,tgt:p.tgt,r:p.r});
+var REG="https://javed-glitch.github.io/hco-symbols/symbols.json";
+var CYC="https://javed-glitch.github.io/market-scan-gpt-0.01/cycle_data.json";
+// Stage colours copied from the cycle dashboard (market-scan cycle_bot.py STAGE_COLORS).
+var STAGE_COLORS={Hope:["#9FE1CB","#085041"],Optimism:["#5DCAA5","#04342C"],Belief:["#3266AD","#E6F1FB"],Thrill:["#185FA5","#E6F1FB"],Euphoria:["#7F77DD","#EEEDFE"],Complacency:["#AFA9EC","#26215C"],Anxiety:["#FAC775","#412402"],Denial:["#EF9F27","#3A2000"],Panic:["#F0997B","#4A1B0C"],Capitulation:["#D85A30","#FAECE7"],Anger:["#E24B4A","#FCEBEB"],Depression:["#A32D2D","#FCEBEB"],Disbelief:["#888780","#F1EFE8"]};
+function getJ(u){return fetch(u,{cache:"no-store"}).then(function(r){return r.json()})}
+Promise.all([getJ(REG),getJ(SRC),getJ(CYC).catch(function(){return null})]).then(function(a){
+  var reg=a[0],raw=a[1],cyc={};
+  ((a[2]&&a[2].results)||[]).forEach(function(x){cyc[x.symbol]=x});
+  var D={asof:raw.asof,cycAsof:a[2]&&a[2].generated_at,rows:[]};
+  var order=reg.groups||[];
+  reg.symbols.slice().sort(function(x,y){return order.indexOf(x.group)-order.indexOf(y.group)}).forEach(function(e){
+    var p=(raw.P||[]).filter(function(x){return x.sym===(e.yahoo||e.sym)})[0];
+    var k=e.pence?0.01:1,c=cyc[e.sym];
+    D.rows.push({sym:e.sym,group:e.group,cur:e.ccy,scanned:!!p,stage:c&&c.stage_name,
+      last:p&&p.last*k,hi:p&&p.hi*k,tgt:p&&p.tgt,r:p?p.r:{}});
   });
   return D;
 }).then(function(D){
   document.getElementById("asof").textContent="As of "+D.asof.replace("T"," ")+" UK · refreshed with the Options Gravity board, moves measured to the last close";
-  var head='<thead><tr><th>Ticker</th><th>Signal<span class="sub">stocks 1M · ETFs 6M</span></th><th>Price</th><th>52W Hi</th><th>30% Entry<br>(52W)</th><th>Target</th><th>Upside<br>to Tgt</th><th>Per<br>&pound;1,000</th><th>30% Entry<br>(Tgt)</th>'+COLS.map(function(c){return '<th class="'+(c==="1M"?"m1":"")+'">'+c+"</th>"}).join("")+"</tr></thead>";
+  var head='<thead><tr><th>Ticker</th><th>Signal<span class="sub">stocks 1M · ETFs 6M</span></th><th>Cycle<span class="sub">market-scan</span></th><th>Price</th><th>52W Hi</th><th>30% Entry<br>(52W)</th><th>Target</th><th>Upside<br>to Tgt</th><th>Per<br>&pound;1,000</th><th>30% Entry<br>(Tgt)</th>'+COLS.map(function(c){return '<th class="'+(c==="1M"?"m1":"")+'">'+c+"</th>"}).join("")+"</tr></thead>";
   var body="",grp="",acts=[];
   D.rows.forEach(function(p){
-    if(p.group!==grp){grp=p.group;body+='<tr class="grp" data-g="'+grp+'"><td colspan="'+(9+COLS.length)+'">'+grp+'<span class="n">'+D.rows.filter(function(x){return x.group===grp}).length+"</span></td></tr>"}
+    if(p.group!==grp){grp=p.group;body+='<tr class="grp" data-g="'+grp+'"><td colspan="'+(10+COLS.length)+'">'+grp+'<span class="n">'+D.rows.filter(function(x){return x.group===grp}).length+"</span></td></tr>"}
     var etf=p.group==="Core",m=p.r[etf?"6M":"1M"],sg=signal(m,etf);
     if(sg.act!=="hold")acts.push({sym:p.sym,sg:sg,m:m,etf:etf});
+    if(!p.scanned){
+      body+='<tr data-r="'+p.group+'"><td><span class="tk">'+p.sym+'</span><span class="tag">'+tagFor(p.group)+'</span></td><td class="sig"><span class="pill hold">Not scanned</span></td><td>'+cyc(p)+'</td><td colspan="'+(7+COLS.length)+'" class="flat" style="text-align:left">no price feed yet</td></tr>';
+      return;
+    }
     var big=p.last<100||p.cur==="£";var dp=big?2:0;
     var e1=p.hi/1.3,e2=p.tgt?p.tgt/1.3:null;
     var d1=p.last<e1||(e2!==null&&p.last<e2);
@@ -163,7 +177,7 @@ fetch(SRC,{cache:"no-store"}).then(function(r){return r.json()}).then(function(r
     var up=p.tgt?(p.tgt/p.last-1)*100:null;
     var upCls=up===null?"flat":(up>=0?"up":"down");
     body+='<tr data-r="'+p.group+'"><td><span class="tk">'+p.sym+'</span><span class="tag">'+tagFor(p.group)+'</span></td>'+
-      '<td class="sig">'+pill+'</td>'+
+      '<td class="sig">'+pill+'</td><td>'+cyc(p)+'</td>'+
       '<td'+(d1?' class="dipc"':"")+'>'+money(p.cur,p.last,dp)+'</td><td>'+money(p.cur,p.hi,0)+'</td>'+
       '<td'+(p.last<e1?' class="dipc"':"")+'>'+money(p.cur,e1,0)+'</td>'+
       '<td>'+(p.tgt?money(p.cur,p.tgt,0):"—")+'</td>'+
