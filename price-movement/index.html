@@ -153,7 +153,7 @@ Promise.all([getJ(REG),getJ(SRC),getJ(CYC).catch(function(){return null})]).then
   ((a[2]&&a[2].results)||[]).forEach(function(x){cyc[x.symbol]=x});
   var D={asof:raw.asof,cycAsof:a[2]&&a[2].generated_at,rows:[]};
   var order=reg.groups||[];
-  reg.symbols.slice().sort(function(x,y){return order.indexOf(x.group)-order.indexOf(y.group)}).forEach(function(e){
+  reg.symbols.filter(function(e){return !e.feeds||e.feeds.indexOf("pm")>=0}).sort(function(x,y){return order.indexOf(x.group)-order.indexOf(y.group)}).forEach(function(e){
     var p=(raw.P||[]).filter(function(x){return x.sym===(e.yahoo||e.sym)})[0];
     var k=e.pence?0.01:1,c=cyc[e.sym];
     D.rows.push({sym:e.sym,group:e.group,cur:e.ccy,scanned:!!p,stage:c&&c.stage_name,zone:c&&c.cycle_zone,
