@@ -92,7 +92,7 @@ footer{margin-top:22px;color:var(--muted);font-size:13px}
 
 <div class="tools"><button id="openAll">Expand all</button><button id="shutAll">Collapse all</button></div>
 <div class="scroll"><table class="pm" id="pm"></table></div>
-<footer>Prices from Yahoo Finance, as of each scan. Targets are analyst consensus. <b>Cycle</b> is the market-scan cycle stage, shown as published; a dash means that symbol isn't in the cycle scan yet. Symbols come from the shared <b>hco-symbols</b> list; \"Not scanned\" means the price feed doesn't cover it yet. <b>30% Entry</b> is the price at which a +30% gain would reach the 52-week high (or the analyst target). Highlighted price/entry cells mean the price is already below that entry. <b>Upside to Tgt</b> is the analyst target over the current price; <b>Per £1,000</b> is that upside applied to £1,000 (a % figure, so currency-neutral). Satellite, swing and core stocks also follow their own rules elsewhere; this table is the simple monthly-move view. Data is for research, not advice.</footer>
+<footer>Prices from Yahoo Finance, as of each scan. Targets are analyst consensus. <b>Cycle</b> is the market-scan cycle stage, shown as published; a dash means that symbol isn't in the cycle scan yet. Symbols come from the shared <b>hco-symbols</b> list; \"Gap\" means the symbol is in the registry but the Options Gravity scan doesn't cover it yet. <b>30% Entry</b> is the price at which a +30% gain would reach the 52-week high (or the analyst target). Highlighted price/entry cells mean the price is already below that entry. <b>Upside to Tgt</b> is the analyst target over the current price; <b>Per £1,000</b> is that upside applied to £1,000 (a % figure, so currency-neutral). Satellite, swing and core stocks also follow their own rules elsewhere; this table is the simple monthly-move view. Data is for research, not advice.</footer>
 </div>
 <script>
 // Ladder: thresholds on the 1-month move, applied to the % of the CURRENT HOLDING.
@@ -153,7 +153,7 @@ Promise.all([getJ(REG),getJ(SRC),getJ(CYC).catch(function(){return null})]).then
   ((a[2]&&a[2].results)||[]).forEach(function(x){cyc[x.symbol]=x});
   var D={asof:raw.asof,cycAsof:a[2]&&a[2].generated_at,rows:[]};
   var order=reg.groups||[];
-  reg.symbols.filter(function(e){return !e.feeds||e.feeds.indexOf("pm")>=0}).sort(function(x,y){return order.indexOf(x.group)-order.indexOf(y.group)}).forEach(function(e){
+  reg.symbols.slice().sort(function(x,y){return order.indexOf(x.group)-order.indexOf(y.group)}).forEach(function(e){
     var p=(raw.P||[]).filter(function(x){return x.sym===(e.yahoo||e.sym)})[0];
     var k=e.pence?0.01:1,c=cyc[e.sym];
     D.rows.push({sym:e.sym,group:e.group,cur:e.ccy,scanned:!!p,stage:c&&c.stage_name,zone:c&&c.cycle_zone,
@@ -169,7 +169,7 @@ Promise.all([getJ(REG),getJ(SRC),getJ(CYC).catch(function(){return null})]).then
     var etf=p.group==="Core",m=p.r[etf?"6M":"1M"],sg=signal(m,etf);
     if(sg.act!=="hold")acts.push({sym:p.sym,sg:sg,m:m,etf:etf});
     if(!p.scanned){
-      body+='<tr data-r="'+p.group+'"><td><span class="tk">'+p.sym+'</span><span class="tag">'+tagFor(p.group)+'</span></td><td class="sig"><span class="pill hold">Not scanned</span></td><td>'+cyc(p)+'</td><td colspan="'+(7+COLS.length)+'" class="flat" style="text-align:left">no price feed yet</td></tr>';
+      body+='<tr data-r="'+p.group+'"><td><span class="tk">'+p.sym+'</span><span class="tag">'+tagFor(p.group)+'</span></td><td class="sig"><span class="pill hold">Gap</span></td><td>'+cyc(p)+'</td><td colspan="'+(7+COLS.length)+'" class="flat" style="text-align:left">Gap: not on the Options Gravity scan yet (no price, signal or target until gravity is migrated to the registry)</td></tr>';
       return;
     }
     var big=p.last<100||p.cur==="£";var dp=big?2:0;
