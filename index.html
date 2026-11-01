@@ -24,19 +24,63 @@ h3{font-size:15px;margin:22px 0 8px}
 .links{columns:2 280px;column-gap:24px;margin:0;padding:0;list-style:none;font-size:14.5px}
 .links li{break-inside:avoid;margin:0 0 6px}
 .links a{color:var(--brand);text-decoration:none}.links a:hover{text-decoration:underline}
+.cat{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:30px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.links.sub{margin:12px 0 0;font-size:14px}
+.sublab{color:var(--muted);font-size:12.5px;margin:14px 0 0}
+.catd>summary.cat{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;user-select:none}
+.catd>summary.cat::-webkit-details-marker{display:none}
+.catd>summary.cat::before{content:"▾";font-size:12px;color:var(--brand);width:12px}
+.catd:not([open])>summary.cat::before{content:"▸"}
+.catd:not([open])>summary.cat{margin-bottom:0}
+.ctl{display:flex;gap:14px;font-size:13.5px;margin:0 0 -8px}
+.ctl button{background:none;border:0;padding:0;color:var(--brand);font:inherit;cursor:pointer}.ctl button:hover{text-decoration:underline}
+.catd>summary.cat:focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:4px}
+
+:root{--ok:#1B7F4B;--okbg:#E2F4EA;--amb:#9A6700;--ambbg:#FFF3D1;--bad:#B3261E;--badbg:#FBE3DE;--mut:#E9EDF3}
+@media (prefers-color-scheme:dark){:root{--ok:#5FD39A;--okbg:#12301F;--amb:#F0C65C;--ambbg:#3A2E10;--bad:#F4A39B;--badbg:#4B1C13;--mut:#1B2838}}
+.mkt{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:0 0 6px}
+.mk{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.mk .nm{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mk .st{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:15px;margin-top:2px}
+.mk .dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.mk.open .dot{background:var(--ok);box-shadow:0 0 0 3px var(--okbg)}.mk.open .st{color:var(--ok)}
+.mk.ext .dot{background:var(--amb)}.mk.ext .st{color:var(--amb)}
+.mk .sub2{color:var(--muted);font-size:13px;margin-top:2px}
+.mk .clk{font:600 22px/1 ui-monospace,Menlo,monospace;text-align:right}.mk .clk small{display:block;font:500 11px/1.4 system-ui;color:var(--muted);margin-top:4px}
+.fresh{font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 12px}
+.fresh .b{display:inline-flex;align-items:center;gap:5px}.fresh .b i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.fresh .p{background:var(--soft);color:var(--brand);font-weight:600;border-radius:99px;padding:1px 9px}
+.fresh .g i{background:var(--ok)}.fresh .a i{background:var(--amb)}.fresh .r i{background:var(--bad)}.fresh .r{color:var(--bad);font-weight:600}.fresh .a{color:var(--amb)}
 footer{margin-top:34px;color:var(--muted);font-size:13px}
 </style></head><body><div class="wrap">
 <img class="logo" src="logo.png" alt="H &amp; Co Investments">
 <h1>EQUITIES DASHBOARD <span class="int">INTERNAL ONLY</span></h1>
 <p class="lede">All the stock dashboards in one place. Pick a tile. Claude artifact links open only for you, signed in to Claude.</p>
+<div class="mkt" id="mkt" aria-label="Market hours"></div>
+<div class="ctl"><button type="button" id="exp">Expand all</button><button type="button" id="col">Collapse all</button></div>
+<details class="catd" data-k="0" open><summary class="cat">Valuation</summary>
 <div class="grid">
-  <a class="tile" href="fair-value-screener/"><span class="tag">Valuation + timing</span><h2>Fair Value Screener</h2><p>ISUS holdings in the S&amp;P 500 ranked against their own P/E history, with cycle stage and limit ladder. Timing refreshes every weekday, valuation every Monday.</p><span class="go">Open dashboard →</span></a>
-  <a class="tile" href="price-movement/"><span class="tag">Price + signal</span><h2>Price Movement</h2><p>How far each stock has moved from 1 day to its full history, including 2 and 4 months, with a buy or trim signal and the % to act on.</p><span class="go">Open dashboard →</span></a>
-  <a class="tile" href="https://javed-glitch.github.io/options-gravity-4-week-forward-scan-v3/"><span class="tag">Options</span><h2>Options Gravity</h2><p>The 4-week forward scan: where price is pulled to, and the walls around it.</p><span class="go">Open dashboard →</span></a>
-  <a class="tile" href="https://javed-glitch.github.io/market-scan-gpt-0.01/"><span class="tag">Cycle</span><h2>Market Cycle Dashboard</h2><p>The market scan cycle dashboard: where each ticker sits in the cycle.</p><span class="go">Open dashboard →</span></a>
-  <a class="tile" href="https://inquisitive-klepon-3f95ce.netlify.app/"><span class="tag">Portfolio</span><h2>Netlify Tracker</h2><p>Portfolio tracker with trend bands, satellite rotation and analyst targets. Asks for a login.</p><span class="go">Open dashboard →</span></a>
+  <a class="tile" href="fair-value-screener/"><span class="tag">Valuation + timing</span><h2>Fair Value Screener</h2><p>ISUS holdings in the S&amp;P 500 ranked against their own P/E history, with cycle stage and limit ladder. Timing refreshes every weekday, valuation every Monday.</p><span class="fresh" data-f="fvs"></span><span class="go">Open dashboard →</span></a>
   <a class="tile" href="https://claude.ai/artifact/RkrogbHYJnLiG2fqQLpgWi"><span class="tag">Claude artifact</span><h2>Fair Value Desk</h2><p>Per-stock valuation with the Stock Simplifier, Nash and Graham views. Opens in Claude.</p><span class="go">Open artifact →</span></a>
 </div>
+</details>
+<details class="catd" data-k="1" open><summary class="cat">Price and timing</summary>
+<div class="grid">
+  <a class="tile" href="price-movement/"><span class="tag">Price + signal</span><h2>Price Movement</h2><p>How far each stock has moved from 1 day to its full history, including 2 and 4 months, with a buy or trim signal and the % to act on.</p><span class="fresh" data-f="pm"></span><span class="go">Open dashboard →</span></a>
+  <a class="tile" href="https://javed-glitch.github.io/market-scan-gpt-0.01/"><span class="tag">Cycle</span><h2>Market Cycle Dashboard</h2><p>The market scan cycle dashboard: where each ticker sits in the cycle.</p><span class="fresh" data-f="cyc"></span><span class="go">Open dashboard →</span></a>
+  <a class="tile" href="https://www.tradingview.com/chart/xDgRgGhj/"><span class="tag">Charts</span><h2>TradingView</h2><p>Your chart with the Prec Sniper signals. Opens in TradingView.</p><span class="go">Open chart →</span></a>
+</div>
+</details>
+<details class="catd" data-k="2" open><summary class="cat">Options</summary>
+<div class="grid">
+  <a class="tile" href="https://javed-glitch.github.io/options-gravity-4-week-forward-scan-v3/"><span class="tag">Options</span><h2>Options Gravity</h2><p>The 4-week forward scan: where price is pulled to, and the walls around it.</p><span class="fresh" data-f="gr"></span><span class="go">Open dashboard →</span></a>
+</div>
+</details>
+<details class="catd" data-k="3" open><summary class="cat">Portfolio management</summary>
+<div class="grid">
+  <a class="tile" href="https://inquisitive-klepon-3f95ce.netlify.app/"><span class="tag">Portfolio</span><h2>Offline Quant <span style="font-weight:500;color:var(--muted)">(aka AI Stack Portfolio)</span></h2><p>Your quant-down cockpit: live prices, trailing profit budget, withdrawal modeller, allocation ledger and a Claude review. Asks for a login.</p><span class="go">Open dashboard →</span></a>
+</div>
+</details>
 <h3>Claude artifacts</h3>
 <ul class="links">
   <li><a href="https://claude.ai/artifact/PbXWnaV1es4zACSn14bQ8A">Quant Server SOP</a></li>
@@ -62,4 +106,69 @@ footer{margin-top:34px;color:var(--muted);font-size:13px}
   <li><a href="https://claude.ai/artifact/3MMGeSBdnppAGjx4vq7MXL">Kraken Rotation — Build Plan</a></li>
 </ul>
 <footer>Data is for research, not advice. Prices are as of each scan.</footer>
+<script>
+(function(){var K='hco-eq-open',ds=[].slice.call(document.querySelectorAll('details.catd'));
+function load(){try{return JSON.parse(localStorage.getItem(K)||'null')}catch(e){return null}}
+function save(){try{localStorage.setItem(K,JSON.stringify(ds.map(function(d){return d.open})))}catch(e){}}
+var st=load();if(st&&st.length===ds.length)ds.forEach(function(d,i){d.open=!!st[i]});
+ds.forEach(function(d){d.addEventListener('toggle',save)});
+document.getElementById('exp').onclick=function(){ds.forEach(function(d){d.open=true});save()};
+document.getElementById('col').onclick=function(){ds.forEach(function(d){d.open=false});save()};
+})();
+</script>
+<script>
+(function(){
+var REG='https://javed-glitch.github.io/hco-symbols/symbols.json',SRC='https://javed-glitch.github.io/options-gravity-4-week-forward-scan-v3/data.json',CYC='https://javed-glitch.github.io/market-scan-gpt-0.01/cycle_data.json';
+function $(i){return document.getElementById(i)}
+/* ---------- 1. market hours ---------- */
+var HOL={NYSE:{'2026-11-26':'Thanksgiving','2026-12-25':'Christmas Day','2027-01-01':"New Year's Day",'2027-01-18':'MLK Day','2027-02-15':"Presidents' Day",'2027-03-26':'Good Friday'},
+ LSE:{'2026-12-25':'Christmas Day','2026-12-28':'Boxing Day (substitute)','2027-01-01':"New Year's Day",'2027-03-26':'Good Friday','2027-03-29':'Easter Monday'}};
+var EARLY={NYSE:{'2026-11-27':780,'2026-12-24':780},LSE:{'2026-12-24':750,'2026-12-31':750}};
+var EX=[{k:'LSE',nm:'London · LSE',tz:'Europe/London',open:480,close:990,pre:null,post:null,tzl:'UK'},
+        {k:'NYSE',nm:'New York · NYSE / Nasdaq',tz:'America/New_York',open:570,close:960,pre:240,post:1200,tzl:'ET'}];
+function parts(d,tz){var f=new Intl.DateTimeFormat('en-GB',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d),o={};f.forEach(function(p){o[p.type]=p.value});
+  return {ymd:o.year+'-'+o.month+'-'+o.day,wd:o.weekday,min:(+o.hour)*60+(+o.minute),y:+o.year,m:+o.month,d:+o.day}}
+function addDays(y,m,d,n){var t=new Date(Date.UTC(y,m-1,d+n));return {y:t.getUTCFullYear(),m:t.getUTCMonth()+1,d:t.getUTCDate(),ymd:t.toISOString().slice(0,10),wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][t.getUTCDay()]}}
+function instant(tz,y,m,d,min){var g=Date.UTC(y,m-1,d,0,min);for(var i=0;i<3;i++){var p=parts(new Date(g),tz),loc=Date.UTC(p.y,p.m-1,p.d,0,p.min);g+=Date.UTC(y,m-1,d,0,min)-loc}return g}
+function trading(ex,ymd,wd){return wd!=='Sat'&&wd!=='Sun'&&!HOL[ex.k][ymd]}
+function dur(ms){var m=Math.max(0,Math.round(ms/60000)),d=Math.floor(m/1440),h=Math.floor(m%1440/60),mm=m%60;return d?d+'d '+h+'h':h?h+'h '+mm+'m':mm+'m'}
+function hm(min){return ('0'+Math.floor(min/60)).slice(-2)+':'+('0'+min%60).slice(-2)}
+function status(ex,now){
+  var p=parts(now,ex.tz),closeMin=(EARLY[ex.k][p.ymd])||ex.close,td=trading(ex,p.ymd,p.wd),r={cls:'',st:'Closed',sub:'',clock:hm(p.min),early:!!EARLY[ex.k][p.ymd]&&td};
+  function nextOpen(){for(var i=(td&&p.min<ex.open)?0:1;i<12;i++){var a=addDays(p.y,p.m,p.d,i);if(trading(ex,a.ymd,a.wd))return {a:a,t:instant(ex.tz,a.y,a.m,a.d,ex.open)}}}
+  if(td&&p.min>=ex.open&&p.min<closeMin){r.cls='open';r.st='Open';r.sub='Closes in '+dur(instant(ex.tz,p.y,p.m,p.d,closeMin)-now.getTime())+' ('+hm(closeMin)+' '+ex.tzl+(r.early?' · early close':'')+')';return r}
+  if(td&&ex.pre!=null&&p.min>=ex.pre&&p.min<ex.open){r.cls='ext';r.st='Pre-market';r.sub='Opens in '+dur(instant(ex.tz,p.y,p.m,p.d,ex.open)-now.getTime())+' ('+hm(ex.open)+' '+ex.tzl+')';return r}
+  if(td&&ex.post!=null&&p.min>=closeMin&&p.min<ex.post){r.cls='ext';r.st='After-hours';}
+  var n=nextOpen();if(n){var hol=HOL[ex.k][p.ymd];r.sub=(hol&&r.st==='Closed'?hol+' · ':'')+'Opens '+(n.a.ymd===p.ymd?'today':n.a.wd)+' '+hm(ex.open)+' '+ex.tzl+' (in '+dur(n.t-now.getTime())+')'}
+  return r}
+function drawMkt(){var now=new Date();$('mkt').innerHTML=EX.map(function(ex){var s=status(ex,now);
+  return '<div class="mk '+s.cls+'"><div><div class="nm">'+ex.nm+'</div><div class="st"><span class="dot"></span>'+s.st+'</div><div class="sub2">'+s.sub+'</div></div><div class="clk">'+s.clock+'<small>'+ex.tzl+' time</small></div></div>'}).join('')}
+drawMkt();setInterval(drawMkt,30000);
+/* ---------- 2. freshness badges ---------- */
+function bizHours(from,to){var h=0,t=from;while(t<to){var step=Math.min(3600000,to-t),d=new Date(t+step/2).getUTCDay();if(d!==0&&d!==6)h+=step/3600000;t+=step}return h}
+function rel(ms){var m=Math.round((Date.now()-ms)/60000);return m<2?'just now':m<90?m+' min ago':m<2880?Math.round(m/60)+' h ago':Math.round(m/1440)+' d ago'}
+function badge(label,ms,kind){if(!ms||isNaN(ms))return '<span class="b a"><i></i>'+label+' unknown</span>';
+  var age=kind==='weekly'?(Date.now()-ms)/3600000:bizHours(ms,Date.now()),g=kind==='weekly'?180:30,a=kind==='weekly'?240:54,c=age<=g?'g':age<=a?'a':'r';
+  return '<span class="b '+c+'"><i></i>'+label+' '+rel(ms)+(c==='r'?' · stale':'')+'</span>'}
+function put(k,h){var e=document.querySelector('[data-f="'+k+'"]');if(e)e.innerHTML=h}
+function J(u){return fetch(u,{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json()})}
+var ukAsof=function(s){var m=/^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)/.exec(s||'');if(!m)return NaN;var p=Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]);return instant('Europe/London',+m[1],+m[2],+m[3],(+m[4])*60+(+m[5]))};
+var utcAsof=function(s){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)/.exec(s||'');return m?Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]):NaN};
+Promise.all([J(REG),J(SRC),J(CYC).catch(function(){return null}),J('fair-value-screener/status.json').catch(function(){return null})]).then(function(a){
+  var reg=a[0],raw=a[1],cy=a[2],st=a[3],ga=ukAsof(raw.asof);
+  put('pm',badge('Prices',ga));put('gr',badge('Board',ga));
+  put('cyc',cy?badge('Scan',utcAsof(cy.generated_at)):badge('Scan',NaN));
+  put('fvs',st?badge('Timing',st.cycle&&st.cycle.lastOkAt)+badge('Valuation',st.valuation&&st.valuation.lastOkAt,'weekly'):badge('Data',NaN));
+  counts(reg,raw,cy);
+}).catch(function(){['pm','gr','cyc','fvs'].forEach(function(k){put(k,'<span class="b a"><i></i>freshness unavailable</span>')});0});
+/* ---------- 3. discreet counts on the tiles (numbers only, whole registry, same ladder as Price Movement) ---------- */
+var DROPS=[30,20],RISES=[30,40,50,60,100],EDROPS=[6,12],ERISES=[20,24,28];
+function fires(m,etf){if(m==null||isNaN(m))return false;var t=m<0?(etf?EDROPS:DROPS):(etf?ERISES:RISES),a=Math.abs(m);return a>=Math.min.apply(null,t)}
+function pill(k,txt){var e=document.querySelector('[data-f="'+k+'"]');if(e)e.insertAdjacentHTML('beforeend','<span class="b p">'+txt+'</span>')}
+function counts(reg,raw,cy){var cm={};((cy&&cy.results)||[]).forEach(function(x){cm[x.symbol]=x});var sg=0,cz=0;
+  reg.symbols.forEach(function(e){var p=(raw.P||[]).filter(function(x){return x.sym===(e.yahoo||e.sym)})[0];if(!p)return;
+    if(fires(p.r&&p.r[e.group==='Core'?'6M':'1M'],e.group==='Core'))sg++;var z=(cm[e.sym]||{}).cycle_zone;if(z==='ADD'||z==='DOUBLE DOWN')cz++});
+  if(sg)pill('pm',sg+(sg===1?' signal':' signals'));if(cz)pill('cyc',cz+' in ADD / DOUBLE DOWN')}
+})();
+</script>
 </div></body></html>
