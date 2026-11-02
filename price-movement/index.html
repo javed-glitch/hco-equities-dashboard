@@ -35,9 +35,9 @@ details.card[open]>summary{margin-bottom:10px}
 .legend .rule{flex:1 1 280px;color:var(--muted);font-size:14px}
 .legend .rule b{color:var(--ink)}
 .scroll{overflow:auto;max-height:calc(100vh - 24px);border:1px solid var(--line);border-radius:14px;background:var(--surface)}
-table.pm{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
-.pm th,.pm td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:right}
-.pm th{position:sticky;top:0;z-index:2;background:var(--surface);box-shadow:0 1px 0 var(--line);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;vertical-align:bottom}
+table.pm{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
+.pm th,.pm td{padding:6px 5px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:right}
+.pm th{position:sticky;top:0;z-index:2;background:var(--surface);box-shadow:0 1px 0 var(--line);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:700;vertical-align:bottom}
 .pm th:first-child,.pm td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1}
 .pm th:first-child{z-index:3}
 .pm tr.grp td{cursor:pointer;user-select:none;background:var(--soft);color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-align:left;padding:6px 10px}
@@ -46,10 +46,12 @@ table.pm{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numer
 .pm tr.grp td::before{content:"\25BE";display:inline-block;width:14px;color:var(--brand)}
 .pm tr.grp.shut td::before{content:"\25B8"}
 .pm tr.grp .n{font-weight:500;letter-spacing:0;text-transform:none;margin-left:6px}
-.pm td.sig .sub{white-space:normal;max-width:200px}
-.zone{font-weight:700;letter-spacing:.04em;font-size:11px}
+.pm td.sig .sub{white-space:normal;max-width:150px}
+.pm td:first-child .tag{display:table;margin:2px 0 0}
+.zone{font-weight:700;letter-spacing:.04em;font-size:10.5px}
 .zone.add{color:var(--buy)}.zone.trim{color:var(--trim)}.zone.hold{color:var(--flat)}
-.tools{display:flex;gap:8px;margin:0 0 8px}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 8px}
+.swipe{font-size:12px;color:var(--muted)}
 .tools button{font:600 12px/1 inherit;font-family:inherit;color:var(--brand);background:var(--soft);border:0;border-radius:8px;padding:7px 12px;cursor:pointer}
 .pm td.ups{font-weight:600}
 .tag{margin-left:6px;font-size:10px;font-weight:700;letter-spacing:.05em;color:var(--brand);background:var(--soft);border-radius:99px;padding:1px 7px}
@@ -59,10 +61,10 @@ table.pm{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numer
 td.dipc{background:var(--buy-bg);color:var(--buy);font-weight:700}
 th.m1{color:var(--brand)}
 td.sig{text-align:left}
-.pill{display:inline-block;border-radius:8px;padding:3px 10px;font-weight:700;font-size:13px}
+.pill{display:inline-block;border-radius:8px;padding:2px 7px;font-weight:700;font-size:12px}
 .pill.buy{background:var(--buy-bg);color:var(--buy)}.pill.trim{background:var(--trim-bg);color:var(--trim)}.pill.hold{color:var(--flat);font-weight:600;padding-left:0}
 .sub{display:block;font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px}
-.sma{display:block;margin-top:5px;font-size:11.5px;font-weight:700;border-radius:6px;padding:3px 8px;width:max-content;max-width:210px;white-space:normal;line-height:1.3;border:1px solid}
+.sma{display:block;margin-top:5px;font-size:11px;font-weight:700;border-radius:6px;padding:3px 6px;width:max-content;max-width:165px;white-space:normal;line-height:1.3;border:1px solid}
 .sma small{display:block;font-weight:500;opacity:.85}
 .sma.wait{background:#fff4d6;color:#7a4b00;border-color:#f0c36a}.sma.rec{background:#dcf5e6;color:#0b5a2e;border-color:#6fcf97}.sma.ab{background:#e8eefc;color:#27428c;border-color:#9db4ee}
 @media(prefers-color-scheme:dark){.sma.wait{background:#3a2c08;color:#f5c869;border-color:#7a5a12}.sma.rec{background:#0d3220;color:#7ee0a4;border-color:#1e7a46}.sma.ab{background:#16213f;color:#9db4ee;border-color:#34498a}}
@@ -99,7 +101,7 @@ footer{margin-top:22px;color:var(--muted);font-size:13px}
   </div>
 </details>
 
-<div class="tools"><button id="openAll">Expand all</button><button id="shutAll">Collapse all</button></div>
+<div class="tools"><button id="openAll">Expand all</button><button id="shutAll">Collapse all</button><span class="swipe">Swipe the table sideways for the later columns (1Y, Max)</span></div>
 <div class="scroll"><table class="pm" id="pm"></table></div>
 <footer><details class="card"><summary>How to read this page</summary><div class="note">Prices from Yahoo Finance, as of each scan. <b>WAIT / RECLAIMED / ABOVE</b> (on buy and ADD rows) reads the 4H 5-bar SMA, with 4H bars built from Yahoo hourly data: WAIT = the last 4H bar is below its SMA, so deploy on a 4H close above the price shown; RECLAIMED = the latest 4H bar is the first close above it; ABOVE = above for several bars, so late. It is not the daily 5-day gate quant uses, and your chart is the reference. <b>FELL / STOPPED</b> (Cycle column, on the same rows): FELL = daily RSI was under 35 (ETFs 40) at some point in the last 10 sessions, so there was a real fall first (quant&rsquo;s oversold gate); STOPPED = the 4H bar has reclaimed its 5-bar SMA (the same test as the chip); CONFIRMED = both. STOPPED is an earlier, looser bounce read than quant&rsquo;s daily-close confirmation. The Cycle stage itself comes from the market-scan bot, which reads RSI on 4H bars, so its stage can differ from quant&rsquo;s daily-RSI stage. Targets are analyst consensus. <b>Cycle</b> is the market-scan cycle stage, shown as published; a dash means that symbol isn't in the cycle scan yet. Symbols come from the shared <b>hco-symbols</b> list; &ldquo;Gap&rdquo; means the symbol is in the registry but the Options Gravity scan doesn't cover it yet. <b>30% Entry</b> is the price at which a +30% gain would reach the 52-week high (or the analyst target). Highlighted price/entry cells mean the price is already below that entry. <b>Upside to Tgt</b> is the analyst target over the current price; <b>Per £1,000</b> is that upside applied to £1,000 (a % figure, so currency-neutral). Satellite, swing and core stocks also follow their own rules elsewhere; this table is the simple monthly-move view. Data is for research, not advice.</div></details></footer>
 </div>
