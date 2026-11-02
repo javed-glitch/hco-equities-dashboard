@@ -52,6 +52,9 @@ table.pm{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numer
 .zone.add{color:var(--buy)}.zone.trim{color:var(--trim)}.zone.hold{color:var(--flat)}
 .tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 8px}
 .swipe{font-size:12px;color:var(--muted)}
+.optc{font-size:12.5px;color:var(--muted);display:inline-flex;gap:8px;align-items:center}
+.optc label{display:inline-flex;gap:3px;align-items:center;cursor:pointer;color:var(--ink);font-weight:600}
+.optc input{margin:0;accent-color:var(--brand)}
 .tools button{font:600 12px/1 inherit;font-family:inherit;color:var(--brand);background:var(--soft);border:0;border-radius:8px;padding:7px 12px;cursor:pointer}
 .pm td.ups{font-weight:600}
 .tag{margin-left:6px;font-size:10px;font-weight:700;letter-spacing:.05em;color:var(--brand);background:var(--soft);border-radius:99px;padding:1px 7px}
@@ -101,7 +104,7 @@ footer{margin-top:22px;color:var(--muted);font-size:13px}
   </div>
 </details>
 
-<div class="tools"><button id="openAll">Expand all</button><button id="shutAll">Collapse all</button><span class="swipe">Swipe the table sideways for the later columns (1Y, Max)</span></div>
+<div class="tools"><button id="openAll">Expand all</button><button id="shutAll">Collapse all</button><span class="optc">Also show: <label><input type="checkbox" data-c="2M">2M</label> <label><input type="checkbox" data-c="4M">4M</label> <label><input type="checkbox" data-c="6M">6M</label></span><span class="swipe">Swipe the table sideways for the later columns (1Y, Max)</span></div>
 <div class="scroll"><table class="pm" id="pm"></table></div>
 <footer><details class="card"><summary>How to read this page</summary><div class="note">Prices from Yahoo Finance, as of each scan. <b>WAIT / RECLAIMED / ABOVE</b> (on buy and ADD rows) reads the 4H 5-bar SMA, with 4H bars built from Yahoo hourly data: WAIT = the last 4H bar is below its SMA, so deploy on a 4H close above the price shown; RECLAIMED = the latest 4H bar is the first close above it; ABOVE = above for several bars, so late. It is not the daily 5-day gate quant uses, and your chart is the reference. <b>FELL / STOPPED</b> (Cycle column, on the same rows): FELL = daily RSI was under 35 (ETFs 40) at some point in the last 10 sessions, so there was a real fall first (quant&rsquo;s oversold gate); STOPPED = the 4H bar has reclaimed its 5-bar SMA (the same test as the chip); CONFIRMED = both. STOPPED is an earlier, looser bounce read than quant&rsquo;s daily-close confirmation. The Cycle stage itself comes from the market-scan bot, which reads RSI on 4H bars, so its stage can differ from quant&rsquo;s daily-RSI stage. Targets are analyst consensus. <b>Cycle</b> is the market-scan cycle stage, shown as published; a dash means that symbol isn't in the cycle scan yet. Symbols come from the shared <b>hco-symbols</b> list; &ldquo;Gap&rdquo; means the symbol is in the registry but the Options Gravity scan doesn't cover it yet. <b>30% Entry</b> is the price at which a +30% gain would reach the 52-week high (or the analyst target). Highlighted price/entry cells mean the price is already below that entry. <b>Upside to Tgt</b> is the analyst target over the current price; <b>Per £1,000</b> is that upside applied to £1,000 (a % figure, so currency-neutral). Satellite, swing and core stocks also follow their own rules elsewhere; this table is the simple monthly-move view. Data is for research, not advice.</div></details></footer>
 </div>
@@ -226,6 +229,19 @@ Promise.all([getJ(REG),getJ(SRC),getJ(CYC).catch(function(){return null})]).then
   document.getElementById("openAll").onclick=function(){shut={};paint()};
   document.getElementById("shutAll").onclick=function(){document.querySelectorAll("#pm tr.grp").forEach(function(h){shut[h.dataset.g]=true});paint()};
   paint();
+  // 2M / 4M / 6M are optional columns, hidden until ticked (choice kept on this device)
+  var OPT=["2M","4M","6M"],CK="pm-opt-cols",on={},ost=document.createElement("style");
+  document.head.appendChild(ost);
+  try{on=JSON.parse(localStorage.getItem(CK)||"{}")}catch(e){}
+  function applyCols(){
+    ost.textContent=OPT.filter(function(c){return !on[c]}).map(function(c){
+      var n=11+COLS.indexOf(c);
+      return "#pm th:nth-child("+n+"),#pm tr[data-r] td:nth-child("+n+"){display:none}"}).join("");
+    document.querySelectorAll(".optc input").forEach(function(i){i.checked=!!on[i.dataset.c]});
+    try{localStorage.setItem(CK,JSON.stringify(on))}catch(e){}
+  }
+  document.querySelectorAll(".optc input").forEach(function(i){i.onchange=function(){on[i.dataset.c]=i.checked;applyCols()}});
+  applyCols();
   var th=document.querySelector('#pm thead');function hh(){if(th)document.querySelector('.scroll').style.setProperty('--hh',th.offsetHeight+'px')}hh();window.addEventListener('resize',hh);
   var b=document.getElementById("banner");
   if(acts.length){
