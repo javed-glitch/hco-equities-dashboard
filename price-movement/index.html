@@ -67,6 +67,10 @@ td.sig{text-align:left}
 .sma.wait{background:#fff4d6;color:#7a4b00;border-color:#f0c36a}.sma.rec{background:#dcf5e6;color:#0b5a2e;border-color:#6fcf97}.sma.ab{background:#e8eefc;color:#27428c;border-color:#9db4ee}
 @media(prefers-color-scheme:dark){.sma.wait{background:#3a2c08;color:#f5c869;border-color:#7a5a12}.sma.rec{background:#0d3220;color:#7ee0a4;border-color:#1e7a46}.sma.ab{background:#16213f;color:#9db4ee;border-color:#34498a}}
 .pm tr.grp td{position:sticky;top:calc(var(--hh,44px) - 2px);z-index:2}
+.ticks{display:flex;flex-direction:column;gap:3px;align-items:flex-end;margin-top:5px}
+.gl{display:inline-block;font-weight:700;border-radius:5px;padding:1px 6px;font-size:11px;letter-spacing:.03em}
+.gl.ok{background:var(--buy-bg);color:var(--buy)}.gl.no{background:var(--soft);color:var(--flat)}
+.conf-pill{display:inline-block;margin-top:5px;font-size:11px;font-weight:800;letter-spacing:.06em;border-radius:6px;padding:2px 8px;background:var(--buy);color:var(--bg)}
 footer{margin-top:22px;color:var(--muted);font-size:13px}
 </style></head><body><div class="wrap">
 <img class="logo" src="../logo.png" alt="H &amp; Co Investments">
@@ -97,7 +101,7 @@ footer{margin-top:22px;color:var(--muted);font-size:13px}
 
 <div class="tools"><button id="openAll">Expand all</button><button id="shutAll">Collapse all</button></div>
 <div class="scroll"><table class="pm" id="pm"></table></div>
-<footer>Prices from Yahoo Finance, as of each scan. <b>WAIT / RECLAIMED / ABOVE</b> (on buy and ADD rows) reads the 4H 5-bar SMA, with 4H bars built from Yahoo hourly data: WAIT = the last 4H bar is below its SMA, so deploy on a 4H close above the price shown; RECLAIMED = the latest 4H bar is the first close above it; ABOVE = above for several bars, so late. It is not the daily 5-day gate quant uses, and your chart is the reference. Targets are analyst consensus. <b>Cycle</b> is the market-scan cycle stage, shown as published; a dash means that symbol isn't in the cycle scan yet. Symbols come from the shared <b>hco-symbols</b> list; \"Gap\" means the symbol is in the registry but the Options Gravity scan doesn't cover it yet. <b>30% Entry</b> is the price at which a +30% gain would reach the 52-week high (or the analyst target). Highlighted price/entry cells mean the price is already below that entry. <b>Upside to Tgt</b> is the analyst target over the current price; <b>Per £1,000</b> is that upside applied to £1,000 (a % figure, so currency-neutral). Satellite, swing and core stocks also follow their own rules elsewhere; this table is the simple monthly-move view. Data is for research, not advice.</footer>
+<footer>Prices from Yahoo Finance, as of each scan. <b>WAIT / RECLAIMED / ABOVE</b> (on buy and ADD rows) reads the 4H 5-bar SMA, with 4H bars built from Yahoo hourly data: WAIT = the last 4H bar is below its SMA, so deploy on a 4H close above the price shown; RECLAIMED = the latest 4H bar is the first close above it; ABOVE = above for several bars, so late. It is not the daily 5-day gate quant uses, and your chart is the reference. <b>FELL / STOPPED</b> (Cycle column, on the same rows): FELL = daily RSI was under 35 (ETFs 40) at some point in the last 10 sessions, so there was a real fall first (quant&rsquo;s oversold gate); STOPPED = the 4H bar has reclaimed its 5-bar SMA (the same test as the chip); CONFIRMED = both. STOPPED is an earlier, looser bounce read than quant&rsquo;s daily-close confirmation. The Cycle stage itself comes from the market-scan bot, which reads RSI on 4H bars, so its stage can differ from quant&rsquo;s daily-RSI stage. Targets are analyst consensus. <b>Cycle</b> is the market-scan cycle stage, shown as published; a dash means that symbol isn't in the cycle scan yet. Symbols come from the shared <b>hco-symbols</b> list; \"Gap\" means the symbol is in the registry but the Options Gravity scan doesn't cover it yet. <b>30% Entry</b> is the price at which a +30% gain would reach the 52-week high (or the analyst target). Highlighted price/entry cells mean the price is already below that entry. <b>Upside to Tgt</b> is the analyst target over the current price; <b>Per £1,000</b> is that upside applied to £1,000 (a % figure, so currency-neutral). Satellite, swing and core stocks also follow their own rules elsewhere; this table is the simple monthly-move view. Data is for research, not advice.</footer>
 </div>
 <script>
 // Ladder: thresholds on the 1-month move, applied to the % of the CURRENT HOLDING.
@@ -127,10 +131,16 @@ function pctCell(v){
   var a=Math.abs(v),s=a>=1000?(a/1000).toFixed(1)+"K":a.toFixed(1);
   return '<td><span class="'+cls+'">'+(v>=0?"+":"-")+s+"%</span></td>";
 }
-function cyc(p){
+function ticks(p,chip){
+  if(!chip||p.fell==null||!p.b4)return "";
+  var stop=!!p.b4.above,both=p.fell&&stop;
+  var t=function(ok,l,tip){return '<span class="gl '+(ok?"ok":"no")+'" title="'+tip+'">'+l+" "+(ok?"\u2713":"\u2717")+"</span>"};
+  return '<span class="ticks">'+t(p.fell,"FELL","Oversold gate: daily RSI was under "+p.fellThr+" at some point in the last 10 sessions (lowest "+p.fellMin+")")+t(stop,"STOPPED","4H bar has reclaimed its 5-bar SMA (same test as the WAIT / RECLAIMED / ABOVE chip)")+"</span>"+(both?'<span class="conf-pill">CONFIRMED</span>':"");
+}
+function cyc(p,chip){
   if(!p.stage)return '<span class="flat">—</span>';
   var c=STAGE_COLORS[p.stage]||["#888","#fff"];
-  return '<span class="pill" style="background:'+c[0]+';color:'+c[1]+';font-size:12px;padding:2px 8px">'+p.stage+'</span>'+(p.zone?'<span class="sub zone '+(p.zone==="HOLD"?"hold":p.zone==="TRIM"?"trim":"add")+'">'+p.zone+'</span>':"");
+  return '<span class="pill" style="background:'+c[0]+';color:'+c[1]+';font-size:12px;padding:2px 8px">'+p.stage+'</span>'+(p.zone?'<span class="sub zone '+(p.zone==="HOLD"?"hold":p.zone==="TRIM"?"trim":"add")+'">'+p.zone+'</span>':"")+ticks(p,chip);
 }
 function money(cur,v,dp){return cur+v.toLocaleString("en-GB",{minimumFractionDigits:dp,maximumFractionDigits:dp})}
 function tagFor(g){return g==="Satellites"?"SAT":g==="Swing-eligible"?"SWING":g==="Core"?"CORE":"WATCH"}
@@ -169,7 +179,7 @@ Promise.all([getJ(REG),getJ(SRC),getJ(CYC).catch(function(){return null})]).then
   reg.symbols.slice().sort(function(x,y){return order.indexOf(x.group)-order.indexOf(y.group)}).forEach(function(e){
     var p=(raw.P||[]).filter(function(x){return x.sym===(e.yahoo||e.sym)})[0];
     var k=e.pence?0.01:1,c=cyc[e.sym];
-    D.rows.push({sym:e.sym,group:e.group,cur:e.ccy,scanned:!!p,stage:c&&c.stage_name,zone:c&&c.cycle_zone,
+    D.rows.push({sym:e.sym,group:e.group,cur:e.ccy,scanned:!!p,stage:c&&c.stage_name,zone:c&&c.cycle_zone,fell:c?c.fell:null,fellMin:c&&c.fell_min_rsi,fellThr:c&&c.fell_thr,
       last:p&&p.last*k,hi:p&&p.hi*k,tgt:p&&p.tgt,r:p?p.r:{},b4:p&&p.b4,k:k});
   });
   return D;
@@ -193,7 +203,7 @@ Promise.all([getJ(REG),getJ(SRC),getJ(CYC).catch(function(){return null})]).then
     var up=p.tgt?(p.tgt/p.last-1)*100:null;
     var upCls=up===null?"flat":(up>=0?"up":"down");
     body+='<tr data-r="'+p.group+'"><td><span class="tk">'+p.sym+'</span><span class="tag">'+tagFor(p.group)+'</span></td>'+
-      '<td class="sig">'+pill+(chip?chip.h:"")+'</td><td>'+cyc(p)+'</td>'+
+      '<td class="sig">'+pill+(chip?chip.h:"")+'</td><td>'+cyc(p,chip)+'</td>'+
       '<td'+(d1?' class="dipc"':"")+'>'+money(p.cur,p.last,dp)+'</td><td>'+money(p.cur,p.hi,0)+'</td>'+
       '<td'+(p.last<e1?' class="dipc"':"")+'>'+money(p.cur,e1,0)+'</td>'+
       '<td>'+(p.tgt?money(p.cur,p.tgt,0):"—")+'</td>'+
