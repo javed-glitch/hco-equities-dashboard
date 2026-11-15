@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Money - Order Blocks</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{ --bg:#0f1216; --surface:#171b21; --surface2:#1d222a; --border:#282e37; --text:#e8eaee; --text-dim:#a2aab6; --text-faint:#6f7885;
+         --green:#4fae82; --green-bg:#163826; --red:#e2685f; --blue:#6ea3d8; --blue-bg:#182636; --amber:#e3a253; }
+  @media (prefers-color-scheme: light){ :root{ --bg:#f4f5f7; --surface:#ffffff; --surface2:#eef0f3; --border:#dde1e6; --text:#181c22; --text-dim:#5b6472; --text-faint:#8892a0;
+         --green:#1e7a4f; --green-bg:#e4f5ec; --red:#a8412c; --blue:#2f5fa8; --blue-bg:#e8f0fa; --amber:#a8712c; } }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:'IBM Plex Sans',system-ui,sans-serif; line-height:1.5; padding-bottom:50px}
+  header{background:var(--surface); border-bottom:1px solid var(--border); padding:16px}
+  .inner,.wrap{max-width:1000px; margin:0 auto}
+  .wrap{padding:0 16px}
+  header .inner{display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px}
+  h1{font-size:19px; margin:0} h2{font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint); margin:22px 0 8px}
+  a{color:var(--blue); text-decoration:none}
+  .meta{font-size:12px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace}
+  .intro{color:var(--text-dim); font-size:14px; margin:14px 0}
+  .vs{display:grid; grid-template-columns:1fr; gap:10px}
+  @media(min-width:760px){ .vs{grid-template-columns:1fr 1fr} }
+  .v{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px}
+  .v h3{margin:0 0 2px; font-size:16px} .v .sub{color:var(--text-faint); font-size:12.5px; margin-bottom:8px}
+  .btn{display:inline-block; margin-top:10px; padding:8px 14px; border-radius:10px; background:var(--blue-bg); border:1px solid var(--blue); font-weight:600; font-size:13px}
+  .v ul{margin:4px 0 0; padding-left:18px; font-size:13px; color:var(--text-dim)}
+  table{width:100%; border-collapse:collapse; font-size:13px; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden}
+  th,td{padding:8px 10px; border-bottom:1px solid var(--border); text-align:left; vertical-align:top}
+  th{font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-faint); background:var(--surface2)}
+  .y{color:var(--green); font-weight:700} .n{color:var(--text-faint)}
+  .scroll{overflow-x:auto}
+  .small{color:var(--text-faint); font-size:12px; margin-top:10px}
+</style>
+</head>
+<body><div class="hco-home" style="padding:8px 14px;font:600 13px system-ui,sans-serif"><a href="../" style="color:#004BA9;text-decoration:none">&#8962; HCO Equities</a></div>
+<header><div class="inner"><h1>Smart Money - Order Blocks</h1><div class="meta"><a href="../cycle-bot/">Cycle dashboard</a></div></div></header>
+<div class="wrap">
+  <div class="intro" style="border-left:4px solid var(--blue); padding-left:12px"><b>Goal:</b> spot large amounts of money ploughing in (or out of) a stock, to suggest current and future entry and exit zones over a 1 to 3 week horizon, extendable where confidence in the upside holds. <i>Loose note, to be refined.</i></div>
+  <div class="intro">Three versions of the same idea, side by side, so we can compare and keep what works. Both read the same data file, so numbers match; only the presentation and the grouping of signals differ.</div>
+  <div class="vs">
+    <div class="v"><h3>v1 · Technical</h3><div class="sub">Every signal shown separately</div>
+      <ul><li>Raw order blocks by timeframe (1H, 2H, 4H, daily)</li><li>Absorption bars, volume profile and anchored VWAP on the chart</li><li>Evidence score and verdict</li></ul>
+      <a class="btn" href="smart-money-v1.html#APP">Open v1</a></div>
+    <div class="v"><h3>v2 · Plain</h3><div class="sub">Buy zones and sell zones in everyday words</div>
+      <ul><li>Signals merged into buy and sell zones with a 1–3 dot strength</li><li>Plain reasons per zone, options and cycle bot cross-check</li><li>Chart shows only the zones by default; technical detail tucked away</li></ul>
+      <a class="btn" href="smart-money-v2.html#APP">Open v2</a></div>
+    <div class="v"><h3>v3 · Plain + confidence <b style="color:var(--amber)">NEW</b></h3><div class="sub">v2 plus Low / Medium / High confidence for entry and exit</div>
+      <ul><li>1 week and 3 to 4 week horizons, on every card</li><li>Lead vs look-back tags on each reason, plus a "wrong if" price</li><li>Everything else is v2; new parts are highlighted</li></ul>
+      <a class="btn" href="smart-money-v3.html#APP">Open v3</a></div>
+  </div>
+
+  <h2>What each version includes</h2>
+  <div class="scroll"><table>
+    <tr><th>Signal / feature</th><th>v1</th><th>v2</th></tr>
+    <tr><td>Order blocks (price turned here, 1H/2H/4H/daily)</td><td class="y">Shown raw, nearest 3 each side</td><td class="y">Merged into zones</td></tr>
+    <tr><td>Heavy-volume bars (absorption), market-wide ones filtered out</td><td class="y">Markers + table</td><td class="y">Counted in zones; markers optional</td></tr>
+    <tr><td>Volume traded at each price</td><td class="y">On by default</td><td class="y">Counted in zones; chart layer optional</td></tr>
+    <tr><td>Anchored VWAP (average price paid since the low)</td><td class="y">On by default</td><td class="n">Optional layer only</td></tr>
+    <tr><td>Options big bets (put and call walls)</td><td class="n">Not used</td><td class="y">Counted in zones + "options agree" tag</td></tr>
+    <tr><td>Cycle bot stage and action</td><td class="n">Not shown</td><td class="y">Shown</td></tr>
+    <tr><td>Options max pain</td><td class="n">Not shown</td><td class="y">Shown</td></tr>
+    <tr><td>Evidence score (0–3)</td><td class="y">Shown</td><td class="n">Replaced by "Money flow" tag</td></tr>
+    <tr><td>Zone strength (how many signals agree)</td><td class="n">No</td><td class="y">1–3 dots</td></tr>
+    <tr><td>Plain-English summary and idea line</td><td class="n">No</td><td class="y">Yes</td></tr>
+    <tr><td>Leading read: options activity, volume at nearest zone, strength vs market <b style="color:var(--amber)">NEW 4 Nov</b></td><td class="n">No</td><td class="y">Yes, with a one-word lean</td></tr>
+    <tr><td>Earnings date and days to go <b style="color:var(--amber)">NEW 4 Nov</b></td><td class="n">No</td><td class="y">Yes</td></tr>
+    <tr><td>RSI and MACD ticks <b style="color:var(--amber)">NEW 4 Nov</b></td><td class="n">No</td><td class="y">In "More detail" only, not in the lean</td></tr>
+    <tr><td>Left out of both</td><td colspan="2" class="n">London ETFs (no US-hours market filter) · price-turn zones price has closed through · market-wide volume bars</td></tr>
+  </table></div>
+  <div class="small">Data is built by the cycle job from free Yahoo hourly data, plus the options gravity board and the cycle bot. Display only: no signals, no orders. Not advice.</div>
+</div>
+</body>
+</html>
