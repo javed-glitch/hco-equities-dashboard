@@ -52,6 +52,10 @@ h3{font-size:15px;margin:22px 0 8px}
 .fresh .p{background:var(--soft);color:var(--brand);font-weight:600;border-radius:99px;padding:1px 9px}
 .fresh .g i{background:var(--ok)}.fresh .a i{background:var(--amb)}.fresh .r i{background:var(--bad)}.fresh .r{color:var(--bad);font-weight:600}.fresh .a{color:var(--amb)}
 footer{margin-top:34px;color:var(--muted);font-size:13px}
+.pad{width:100%;min-height:200px;resize:vertical;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:14px 18px;font:400 15px/1.55 inherit;font-family:inherit}
+.pad:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.padst{color:var(--muted);font-size:12px;margin-top:6px;min-height:16px}
+.nnote{color:var(--muted);font-size:13px;margin:0 0 10px}
 </style></head><body><div class="wrap">
 <img class="logo" src="logo.png" alt="H &amp; Co Investments">
 <h1>EQUITIES DASHBOARD <span class="int">INTERNAL ONLY</span></h1>
@@ -62,6 +66,7 @@ footer{margin-top:34px;color:var(--muted);font-size:13px}
 <div class="grid">
   <a class="tile" href="fair-value-screener/"><span class="tag">Valuation + timing</span><h2>Fair Value Screener</h2><p>ISUS holdings in the S&amp;P 500 ranked against their own P/E history, with cycle stage and limit ladder. Timing refreshes every weekday, valuation every Monday.</p><span class="fresh" data-f="fvs"></span><span class="go">Open dashboard →</span></a>
   <a class="tile" href="https://claude.ai/artifact/RkrogbHYJnLiG2fqQLpgWi"><span class="tag">Claude artifact</span><h2>Fair Value Desk</h2><p>Per-stock valuation with the Stock Simplifier, Nash and Graham views. Opens in Claude.</p><span class="go">Open artifact →</span></a>
+  <a class="tile" href="https://claude.ai/artifact/7B5BNTiR1U1ggVniSJ4HR8"><span class="tag">Claude artifact</span><h2>Fair Value ETF</h2><p>Is a fund cheap, fair or expensive? Values each ETF from its holdings against their own P/E history, or from its P/E against the S&amp;P 500's history. Search or request any fund. Opens in Claude.</p><span class="go">Open artifact →</span></a>
   <a class="tile" href="https://claude.ai/artifact/TDWG5Xc2TNSNGiafLhoeZZ"><span class="tag">Claude artifact</span><h2>Portfolio Structure Plan</h2><p>Risk-budget caps by theme and by stock, and the no-loss transition for core, satellite and cash. Opens in Claude.</p><span class="go">Open artifact →</span></a>
 </div>
 </details>
@@ -84,6 +89,11 @@ footer{margin-top:34px;color:var(--muted);font-size:13px}
   <a class="tile" href="https://claude.ai/artifact/EXcZfyM8eYGzNdvzpgtPBc"><span class="tag">Claude artifact</span><h2>Account and Cash Tracker</h2><p>Dated account statements and book value over time, the excess over the floor, and what you can take out. Opens in Claude.</p><span class="go">Open artifact →</span></a>
 </div>
 </details>
+<details class="catd" data-k="4" open><summary class="cat">Notes</summary>
+<p class="nnote">Scratch pad for my own reading of prices. Type here; it saves by itself, on this device only. Not advice.</p>
+<textarea id="pad" class="pad" rows="10" aria-label="Notes scratch pad" spellcheck="true" placeholder="Type notes here"></textarea>
+<div class="padst" id="padst" aria-live="polite"></div>
+</details>
 <h3>Claude artifacts</h3>
 <ul class="links">
   <li><a href="https://claude.ai/artifact/PbXWnaV1es4zACSn14bQ8A">Quant Server SOP</a></li>
@@ -91,6 +101,7 @@ footer{margin-top:34px;color:var(--muted);font-size:13px}
   <li><a href="https://claude.ai/artifact/XEw8B7ZWxiqVS5KPxMtZWn">Opportunity Cost</a></li>
   <li><a href="https://claude.ai/artifact/EXcZfyM8eYGzNdvzpgtPBc">Account and Cash Tracker</a></li>
   <li><a href="https://claude.ai/artifact/TDWG5Xc2TNSNGiafLhoeZZ">Portfolio Structure Plan</a></li>
+  <li><a href="https://claude.ai/artifact/7B5BNTiR1U1ggVniSJ4HR8">Fair Value ETF</a></li>
   <li><a href="https://claude.ai/artifact/KPDYc2fduWD4V1LAZdexxB">Gravity 4-Week Scan</a></li>
   <li><a href="https://claude.ai/artifact/NccTUWtn2WMEvuQgZiNQD8">Options Gravity V2</a></li>
   <li><a href="https://claude.ai/artifact/TPasPDUn8hFVa5r9D4zT22">Gravity Phase 2 Mock</a></li>
@@ -112,6 +123,15 @@ footer{margin-top:34px;color:var(--muted);font-size:13px}
   <li><a href="https://claude.ai/artifact/3MMGeSBdnppAGjx4vq7MXL">Kraken Rotation — Build Plan</a></li>
 </ul>
 <footer>Data is for research, not advice. Prices are as of each scan.</footer>
+<script>
+(function(){var K='hco-eq-notes',t=document.getElementById('pad'),st=document.getElementById('padst');if(!t)return;
+var seed="How I read the 4-hour chart\n- Watch for the 5-day average (yellow) crossing the 10-day average (blue).\n- The opportunity is the gap from the 5-day average up to the upper Bollinger band (the upper white line).\n- RSI and MACD only occasionally. Volume is now switched on.\n";
+var v=null;try{v=localStorage.getItem(K)}catch(e){}
+t.value=v===null?seed:v;var tm=null;
+function say(m){st.textContent=m}
+t.addEventListener('input',function(){say('Saving…');clearTimeout(tm);tm=setTimeout(function(){try{localStorage.setItem(K,t.value);say('Saved on this device at '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}))}catch(e){say('Could not save on this device (private browsing?)')}},500)});
+})();
+</script>
 <script>
 (function(){var K='hco-eq-open',ds=[].slice.call(document.querySelectorAll('details.catd'));
 function load(){try{return JSON.parse(localStorage.getItem(K)||'null')}catch(e){return null}}
